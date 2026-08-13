@@ -1,0 +1,22 @@
+{
+  "name": "Psychiatry Offline",
+  "short_name": "Psychiatry",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef3f2",
+  "theme_color": "#0f3a3d",
+  "description": "Theo dõi điều trị tâm thần ngoại trú, dữ liệu lưu cục bộ trên thiết bị.",
+  "icons": [
+    {
+      "src": "icon-180.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
