@@ -1163,47 +1163,49 @@ function renderTrendCards(pid, history){
         ${dassTrendChart(arr, 'stress', 'Stress', 'Căng thẳng', SCALES.dass21.subLevels.stress, '#1f6f73')}
       </div>`;
     } else if(key==='ybocs2'){
+      const dates = arr.map(a=>a.date);
+      const totalMax = SCALES.ybocs2.levels[SCALES.ybocs2.levels.length-1][0];
       html += `<div class="card"><h3>Xu hướng — Y-BOCS-II</h3>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.subScores.obsessions), '#b5473f', 'Ám ảnh (Obsessions)')}</div>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.subScores.compulsions), '#c98a2c', 'Cưỡng chế (Compulsions)')}</div>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.total), '#1f6f73', 'Tổng điểm')}</div>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.subScores.obsessions), dates, '#b5473f', 'Ám ảnh (Obsessions)')}</div>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.subScores.compulsions), dates, '#c98a2c', 'Cưỡng chế (Compulsions)')}</div>
+        ${bandedTrendChart(arr.map(a=>a.total), dates, 'Tổng điểm / Total score', SCALES.ybocs2.levels, '#1f6f73', totalMax)}
       </div>`;
     } else if(key==='caars'){
-      html += `<div class="card"><h3>Xu hướng — CAARS-S:S (điểm thô)</h3>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.A), '#b5473f', 'A — Inattention/Memory')}</div>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.B), '#c98a2c', 'B — Hyperactivity/Restlessness')}</div>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.C), '#a15b1f', 'C — Impulsivity/Emotional Lability')}</div>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.D), '#4a7c59', 'D — Problems with Self-Concept')}</div>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.E), '#1f6f73', 'E — ADHD Index')}</div>
+      const dates = arr.map(a=>a.date);
+      html += `<div class="card"><h3>Xu hướng — CAARS-S:S (điểm thô — chưa có ngưỡng chuẩn hóa để phân vùng mức độ)</h3>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.A), dates, '#b5473f', 'A — Inattention/Memory')}</div>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.B), dates, '#c98a2c', 'B — Hyperactivity/Restlessness')}</div>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.C), dates, '#a15b1f', 'C — Impulsivity/Emotional Lability')}</div>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.D), dates, '#4a7c59', 'D — Problems with Self-Concept')}</div>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.E), dates, '#1f6f73', 'E — ADHD Index')}</div>
       </div>`;
     } else {
-      html += `<div class="card"><h3>Xu hướng — ${SCALES[key].name}</h3>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.total), '#1f6f73', 'Tổng điểm')}</div>
+      const s = SCALES[key];
+      const maxCap = s.levels[s.levels.length-1][0];
+      html += `<div class="card"><h3>Xu hướng — ${s.name}</h3>
+        ${bandedTrendChart(arr.map(a=>a.total), arr.map(a=>a.date), 'Tổng điểm / Total score', s.levels, '#1f6f73', maxCap)}
       </div>`;
     }
   });
   return html;
 }
 
-function sparkline(values, color, label){
-  const w=560,h=50,pad=6;
+function sparkline(values, dates, color, label){
+  const w=620,h=64,padL=6,padR=6,padT=6,padB=18;
+  const innerW=w-padL-padR, innerH=h-padT-padB;
   const max = Math.max(...values, 1);
   const min = 0;
-  const step = values.length>1 ? (w-2*pad)/(values.length-1) : 0;
-  const pts = values.map((v,i)=>{
-    const x = pad + i*step;
-    const y = h-pad - ( (v-min)/(max-min||1) ) * (h-2*pad);
-    return `${x},${y}`;
-  }).join(' ');
-  const dots = values.map((v,i)=>{
-    const x = pad + i*step;
-    const y = h-pad - ( (v-min)/(max-min||1) ) * (h-2*pad);
-    return `<circle cx="${x}" cy="${y}" r="2.6" fill="${color}"/>`;
-  }).join('');
+  const stepX = values.length>1 ? innerW/(values.length-1) : 0;
+  const y = v => padT + innerH - ( (v-min)/(max-min||1) ) * innerH;
+  const pts = values.map((v,i)=>`${padL+i*stepX},${y(v)}`).join(' ');
+  const dots = values.map((v,i)=>`<circle cx="${padL+i*stepX}" cy="${y(v)}" r="2.6" fill="${color}"/>`).join('');
+  const anchorFor = (i)=> i===0 ? 'start' : (i===values.length-1 ? 'end' : 'middle');
+  const dateLabels = (dates||[]).map((d,i)=>`<text x="${padL+i*stepX}" y="${h-4}" font-size="9" fill="var(--ink-soft)" text-anchor="${anchorFor(i)}">${formatShortDate(d)}</text>`).join('');
   return `<div style="font-size:11px;color:var(--ink-soft);margin-bottom:2px;">${label} (mới nhất: ${values[values.length-1]})</div>
-  <svg class="trend-svg" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+  <svg class="trend-svg" viewBox="0 0 ${w} ${h}" style="height:64px;" preserveAspectRatio="none">
     <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/>
     ${dots}
+    ${dateLabels}
   </svg>`;
 }
 
@@ -1212,25 +1214,21 @@ function formatShortDate(d){
   return parts.length===3 ? `${parts[2]}/${parts[1]}` : (d||'');
 }
 
-const DASS_ZONE_COLORS = ['#dcebde','#f6e8c9','#f8d9b8','#f3cac4','#e3b3ac'];
-const DASS_ZONE_LABELS = ['Bình thường','Nhẹ','Trung bình','Nặng','Rất nặng'];
+const ZONE_COLORS = ['#dcebde','#f6e8c9','#f8d9b8','#f3cac4','#e3b3ac'];
 
-function dassTrendChart(arr, subKey, label, abbr, thresholds, color){
-  const values = arr.map(a=>a.subScores[subKey]);
-  const dates = arr.map(a=>a.date);
+function bandedTrendChart(values, dates, titleHtml, thresholds, color, maxCap){
   const w=620, h=136, padL=6, padR=6, padT=10, padB=30;
   const innerH = h-padT-padB, innerW = w-padL-padR;
-  const bandEdges = thresholds.map(t=>t[0]);
-  const realMax = bandEdges[bandEdges.length-2];
-  const visualMax = Math.max(...values, realMax) * 1.12;
+  const visualMax = Math.max(...values, maxCap) * 1.12;
   const y = v => padT + innerH * (1 - Math.min(v, visualMax)/visualMax);
 
   let lower = 0, bandsSvg = '';
-  thresholds.forEach((t,i)=>{
+  thresholds.forEach((t)=>{
     const upper = Math.min(t[0], visualMax);
     const yTop = y(upper), yBottom = y(lower);
-    bandsSvg += `<rect x="${padL}" y="${yTop}" width="${innerW}" height="${Math.max(yBottom-yTop,0)}" fill="${DASS_ZONE_COLORS[i]}"/>`;
-    lower = t[0];
+    const zoneColor = ZONE_COLORS[t[2]] ?? ZONE_COLORS[ZONE_COLORS.length-1];
+    bandsSvg += `<rect x="${padL}" y="${yTop}" width="${innerW}" height="${Math.max(yBottom-yTop,0)}" fill="${zoneColor}"/>`;
+    lower = Math.min(t[0], maxCap);
   });
 
   const stepX = values.length>1 ? innerW/(values.length-1) : 0;
@@ -1243,7 +1241,7 @@ function dassTrendChart(arr, subKey, label, abbr, thresholds, color){
 
   return `<div style="margin-bottom:18px;">
     <div style="font-size:12px;color:var(--ink);font-weight:700;margin-bottom:4px;">
-      ${label} <span style="color:var(--ink-soft);font-weight:500;">(${abbr})</span> — mới nhất: ${values[values.length-1]}
+      ${titleHtml} — mới nhất: ${values[values.length-1]}
       <span class="level-pill lv-${lastLevel.lvl}" style="margin-left:6px;">${bi(lastLevel.label)}</span>
     </div>
     <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:120px;display:block;" preserveAspectRatio="none">
@@ -1254,9 +1252,18 @@ function dassTrendChart(arr, subKey, label, abbr, thresholds, color){
       ${dateLabels}
     </svg>
     <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
-      ${DASS_ZONE_LABELS.map((zl,i)=>`<span style="font-size:10px;color:var(--ink-soft);display:inline-flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:2px;background:${DASS_ZONE_COLORS[i]};display:inline-block;border:1px solid rgba(0,0,0,0.12);"></span>${zl}</span>`).join('')}
+      ${thresholds.map(t=>`<span style="font-size:10px;color:var(--ink-soft);display:inline-flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:2px;background:${ZONE_COLORS[t[2]] ?? ZONE_COLORS[ZONE_COLORS.length-1]};display:inline-block;border:1px solid rgba(0,0,0,0.12);"></span>${bi(t[1])}</span>`).join('')}
     </div>
   </div>`;
+}
+
+function dassTrendChart(arr, subKey, label, abbr, thresholds, color){
+  const values = arr.map(a=>a.subScores[subKey]);
+  const dates = arr.map(a=>a.date);
+  const bandEdges = thresholds.map(t=>t[0]);
+  const maxCap = bandEdges[bandEdges.length-2];
+  const titleHtml = `${label} <span style="color:var(--ink-soft);font-weight:500;">(${abbr})</span>`;
+  return bandedTrendChart(values, dates, titleHtml, thresholds, color, maxCap);
 }
 
 /* ---------- Scale-taking modal ---------- */
