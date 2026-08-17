@@ -313,6 +313,12 @@ const OPT_YESNO = [
   {v:0,l:'Không / No'},
   {v:1,l:'Có / Yes'}
 ];
+const OPT_CAARS = [
+  {v:0,l:'Hoàn toàn không, không bao giờ / Not at all, never'},
+  {v:1,l:'Một chút, thỉnh thoảng / Just a little, once in a while'},
+  {v:2,l:'Khá nhiều, thường xuyên / Pretty much, often'},
+  {v:3,l:'Rất nhiều, rất thường xuyên / Very much, very frequently'}
+];
 
 function ham(max, extra){ return {max, opts: Array.from({length:max+1},(_,i)=>({v:i,l:String(i)}))}; }
 
@@ -715,6 +721,39 @@ const SCALES = {
       },
     ],
     levels:[[13,'Dưới ngưỡng lâm sàng / Subclinical (tham khảo)',0],[25,'Nhẹ / Mild',1],[34,'Trung bình / Moderate',2],[40,'Nặng / Severe',3],[50,'Rất nặng / Extreme',4]]
+  },
+  caars:{
+    key:'caars', name:'CAARS-S', full:'Conners\' Adult ADHD Rating Scale — Self-Report — Thang đánh giá ADHD ở người lớn của Conners (tự báo cáo)',
+    instructions:'Dưới đây là những câu hỏi liên quan đến các hành vi hoặc vấn đề mà người trưởng thành đôi khi gặp phải. Hãy đọc kỹ từng câu và xác định mức độ hoặc tần suất mà câu đó mô tả tình trạng của bạn trong thời gian gần đây. / Listed below are items concerning behaviors or problems sometimes experienced by adults. Read each item carefully and decide how much or how frequently each item describes you recently.',
+    items:[
+      {t:'1. Tôi ngắt lời người khác khi họ đang nói. / I interrupt others when talking.', opts:OPT_CAARS},
+      {t:'2. Tôi luôn hoạt động không ngừng, như thể được một động cơ thúc đẩy. / I am always on the go, as if driven by a motor.', opts:OPT_CAARS},
+      {t:'3. Tôi thiếu tổ chức. / I’m disorganized.', opts:OPT_CAARS},
+      {t:'4. Tôi khó có thể ở yên một chỗ trong thời gian dài. / It’s hard for me to stay in one place very long.', opts:OPT_CAARS},
+      {t:'5. Tôi khó theo dõi hoặc quản lý nhiều việc cùng một lúc. / It’s hard for me to keep track of several things at once.', opts:OPT_CAARS},
+      {t:'6. Tôi dễ cảm thấy buồn chán. / I’m bored easily.', opts:OPT_CAARS},
+      {t:'7. Tôi dễ nóng nảy/mất bình tĩnh. / I have a short fuse/hot temper.', opts:OPT_CAARS},
+      {t:'8. Tôi vẫn còn những cơn nổi giận hoặc ăn vạ. / I still throw tantrums.', opts:OPT_CAARS},
+      {t:'9. Tôi né tránh những thử thách mới vì thiếu tin tưởng vào khả năng của mình. / I avoid new challenges because I lack faith in my abilities.', opts:OPT_CAARS},
+      {t:'10. Tôi tìm kiếm những hoạt động có nhịp độ nhanh và gây hứng thú/kích thích. / I seek out fast paced, exciting activities.', opts:OPT_CAARS},
+      {t:'11. Tôi cảm thấy bồn chồn bên trong, ngay cả khi đang ngồi yên. / I feel restless inside, even if I am sitting still.', opts:OPT_CAARS},
+      {t:'12. Những gì tôi nghe hoặc nhìn thấy dễ làm tôi mất tập trung khỏi việc đang làm. / Things I hear or see distract me from what I’m doing.', opts:OPT_CAARS},
+      {t:'13. Nhiều việc có thể dễ dàng khiến tôi bực bội hoặc nổi nóng. / Many things set me off easily.', opts:OPT_CAARS},
+      {t:'14. Tôi cảm thấy thành tích của mình thấp hơn so với khả năng thực sự. / I am an underachiever.', opts:OPT_CAARS},
+      {t:'15. Tôi thường tự trách hoặc cảm thấy thất vọng về bản thân. / I get down on myself.', opts:OPT_CAARS},
+      {t:'16. Bề ngoài tôi tỏ ra ổn, nhưng bên trong tôi lại thiếu tự tin vào bản thân. / I act okay on the outside, but inside I’m unsure of myself.', opts:OPT_CAARS},
+      {t:'17. Tôi khó hoàn thành công việc nếu không có một thời hạn bắt buộc rõ ràng. / I can’t get things done unless there’s an absolute deadline.', opts:OPT_CAARS},
+      {t:'18. Tôi gặp khó khăn khi bắt đầu một công việc. / I have trouble getting started on a task.', opts:OPT_CAARS},
+      {t:'19. Tôi thường xen vào các hoạt động của người khác. / I intrude on others’ activities.', opts:OPT_CAARS},
+      {t:'20. Tâm trạng của tôi thay đổi khó đoán. / My moods are unpredictable.', opts:OPT_CAARS},
+      {t:'21. Tôi thường đãng trí trong các hoạt động hằng ngày. / I’m absent-minded in daily activities.', opts:OPT_CAARS},
+      {t:'22. Đôi khi tôi tập trung quá mức vào một việc đến mức không để ý đến mọi thứ xung quanh; nhưng có lúc sự chú ý của tôi lại quá phân tán khiến bất cứ điều gì cũng có thể làm tôi mất tập trung. / Sometimes my attention narrows so much that I’m oblivious to everything else; other times it’s so broad that everything distracts me.', opts:OPT_CAARS},
+      {t:'23. Tôi thường cựa quậy, bồn chồn hoặc nghịch tay chân. / I tend to squirm or fidget.', opts:OPT_CAARS},
+      {t:'24. Tôi khó duy trì sự tập trung vào một việc trừ khi việc đó thực sự thú vị. / I can’t keep my mind on something unless it’s really interesting.', opts:OPT_CAARS},
+      {t:'25. Tôi ước mình tự tin hơn vào khả năng của bản thân. / I wish I had greater confidence in my abilities.', opts:OPT_CAARS},
+      {t:'26. Những thất bại trong quá khứ khiến tôi khó tin tưởng vào bản thân mình. / My past failures make it hard for me to believe in myself.', opts:OPT_CAARS}
+    ],
+    levels:[[78,'Tổng điểm thô — chưa phân mức độ lâm sàng, cần đối chiếu tài liệu CAARS gốc / Raw total — no severity cutoffs applied, refer to official CAARS manual',0]]
   }
 };
 
