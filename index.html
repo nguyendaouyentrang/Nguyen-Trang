@@ -275,6 +275,7 @@
         <button id="import-data-btn" class="btn" style="padding:6px 9px;font-size:11px;">Nhập dữ liệu</button>
         <button id="backup-data-btn" class="btn" style="padding:6px 9px;font-size:11px;">Backup mã hóa</button>
         <button id="restore-data-btn" class="btn" style="padding:6px 9px;font-size:11px;">Khôi phục</button>
+        <button id="clean-empty-btn" class="btn" style="padding:6px 9px;font-size:11px;">Dọn bệnh nhân trống</button>
       </div>
       <input id="import-file" type="file" accept="application/json,.json" style="display:none">
       <input id="restore-file" type="file" accept="application/json,.psybackup" style="display:none">
@@ -1830,6 +1831,27 @@ function openAddPatientModal(existing){
   });
 }
 
+async function cleanEmptyPatients(){
+  if(!patients.length){ toast('Chưa có bệnh nhân nào'); return; }
+  toast('Đang quét dữ liệu...');
+  const emptyList = [];
+  for(const p of patients){
+    const tl = (await storageGet('timeline_'+p.id)) || [];
+    const sc = (await storageGet('scales_'+p.id)) || [];
+    if(tl.length===0 && sc.length===0) emptyList.push(p);
+  }
+  if(!emptyList.length){ alert('Không có bệnh nhân nào trống dữ liệu tiến trình điều trị và thang đo.'); return; }
+  const preview = emptyList.slice(0,30).map(p=>p.name).join('\n') + (emptyList.length>30 ? `\n… và ${emptyList.length-30} bệnh nhân khác` : '');
+  if(!confirm(`Tìm thấy ${emptyList.length} bệnh nhân chưa có tiến trình điều trị và chưa làm thang đo nào:\n\n${preview}\n\nXóa toàn bộ ${emptyList.length} bệnh nhân này? Nên có bản backup trước khi xóa — hành động này không thể hoàn tác.`)) return;
+  const emptyIds = new Set(emptyList.map(p=>p.id));
+  patients = patients.filter(p=>!emptyIds.has(p.id));
+  await storageSet('patients_v1', patients);
+  emptyList.forEach(p=>{ delete timelines[p.id]; delete scaleData[p.id]; });
+  if(activePatientId && emptyIds.has(activePatientId)) activePatientId = null;
+  renderSidebar();
+  renderMain();
+  toast(`Đã xóa ${emptyList.length} bệnh nhân trống dữ liệu`);
+}
 async function deletePatient(pid){
   if(!confirm('Xóa bệnh nhân này? Toàn bộ tiến trình điều trị và thang đo sẽ bị xóa theo.')) return;
   patients = patients.filter(p=>p.id!==pid);
@@ -1952,9 +1974,11 @@ function wireOfflineControls(){
   const bak=document.getElementById('backup-data-btn');
   const res=document.getElementById('restore-data-btn');
   const ref=document.getElementById('restore-file');
+  const cln=document.getElementById('clean-empty-btn');
   if(imp&&inf){ imp.onclick=()=>inf.click(); inf.onchange=()=>{ if(inf.files[0]) importSeedFile(inf.files[0]); }; }
   if(bak) bak.onclick=()=>encryptedBackup();
   if(res&&ref){ res.onclick=()=>ref.click(); ref.onchange=()=>{ if(ref.files[0]) restoreEncryptedFile(ref.files[0]); }; }
+  if(cln) cln.onclick=()=>cleanEmptyPatients();
 }
 wireOfflineControls();
 if('serviceWorker' in navigator){
