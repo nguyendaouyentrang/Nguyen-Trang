@@ -161,6 +161,21 @@
   .score-table th{text-align:left;padding:7px 10px;color:var(--ink-soft);font-weight:600;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;}
   .score-table td{padding:9px 10px;border-bottom:1px solid var(--line);}
   .score-table tr:last-child td{border-bottom:none;}
+  .score-row{cursor:pointer;}
+  .score-row:hover td{background:var(--teal-pale);}
+  .sq-opt-ro{cursor:default;}
+  .sq-opt-ro:not(.picked){opacity:0.45;}
+
+  /* Y-BOCS-II Có/Không */
+  .yb-check-row{display:flex;justify-content:space-between;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .yb-check-text{font-size:12.5px;color:var(--ink);line-height:1.45;flex:1;min-width:220px;}
+  .yb-check-opts{display:flex;gap:7px;flex-shrink:0;}
+  .yb-opt{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink-soft);white-space:nowrap;}
+  .yb-opt:hover{border-color:var(--teal);}
+  .yb-opt.picked{background:var(--teal-dark);border-color:var(--teal-dark);color:#fff;}
+  .yb-opt-ro{cursor:default;}
+  .yb-opt-ro:hover{border-color:var(--line);}
+  .yb-opt-ro:not(.picked){opacity:0.45;}
   .level-pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
   .lv-0{background:var(--green-pale);color:var(--green);}
   .lv-1{background:var(--amber-pale);color:var(--amber);}
@@ -369,25 +384,111 @@ const SCALES = {
     key:'hamd17', name:'HAM-D 17', full:'Hamilton Depression Rating Scale (17 mục)',
     instructions:'Đánh giá lâm sàng bởi bác sĩ dựa trên phỏng vấn.',
     items:[
-      {t:'1. Khí sắc trầm cảm', ...ham(4)},
-      {t:'2. Cảm giác tội lỗi', ...ham(4)},
-      {t:'3. Tự sát', ...ham(4), risk:true},
-      {t:'4. Mất ngủ đầu giấc', ...ham(2)},
-      {t:'5. Mất ngủ giữa giấc', ...ham(2)},
-      {t:'6. Mất ngủ cuối giấc', ...ham(2)},
-      {t:'7. Công việc và hoạt động', ...ham(4)},
-      {t:'8. Chậm chạp (tâm thần vận động)', ...ham(4)},
-      {t:'9. Kích động', ...ham(4)},
-      {t:'10. Lo âu tâm thần', ...ham(4)},
-      {t:'11. Lo âu cơ thể', ...ham(4)},
-      {t:'12. Triệu chứng cơ thể — tiêu hóa', ...ham(2)},
-      {t:'13. Triệu chứng cơ thể chung', ...ham(2)},
-      {t:'14. Triệu chứng sinh dục', ...ham(2)},
-      {t:'15. Nghi bệnh (Hypochondriasis)', ...ham(4)},
-      {t:'16. Sụt cân', ...ham(2)},
-      {t:'17. Nhận thức bệnh (Insight)', ...ham(2)}
+      {t:'1. Khí sắc trầm cảm (buồn bã, tuyệt vọng, bất lực, vô giá trị)', opts:[
+        {v:0,l:'Không có'},
+        {v:1,l:'Chỉ bộc lộ khi được hỏi'},
+        {v:2,l:'Tự phát bày tỏ bằng lời'},
+        {v:3,l:'Biểu hiện qua nét mặt, tư thế, giọng nói, hay khóc'},
+        {v:4,l:'Hầu như chỉ thể hiện trạng thái này trong mọi giao tiếp lời nói và phi lời nói'}
+      ]},
+      {t:'2. Cảm giác tội lỗi', opts:[
+        {v:0,l:'Không có'},
+        {v:1,l:'Tự trách, cảm thấy đã làm người khác thất vọng'},
+        {v:2,l:'Ý nghĩ tội lỗi hoặc suy nghĩ dai dẳng về lỗi lầm quá khứ'},
+        {v:3,l:'Cho rằng bệnh hiện tại là sự trừng phạt; hoang tưởng tội lỗi'},
+        {v:4,l:'Nghe thấy giọng nói buộc tội/lên án và/hoặc có ảo thị đe dọa'}
+      ]},
+      {t:'3. Ý tưởng tự sát', risk:true, opts:[
+        {v:0,l:'Không có'},
+        {v:1,l:'Cảm thấy cuộc sống không đáng sống'},
+        {v:2,l:'Ước gì mình chết, hoặc có ý nghĩ về cái chết'},
+        {v:3,l:'Có ý tưởng hoặc hành vi tự sát (gesture)'},
+        {v:4,l:'Có toan tự sát (mọi toan tự sát nghiêm trọng đều chấm 4)'}
+      ]},
+      {t:'4. Mất ngủ đầu giấc', opts:[
+        {v:0,l:'Không khó vào giấc'},
+        {v:1,l:'Thỉnh thoảng khó vào giấc (>30 phút)'},
+        {v:2,l:'Khó vào giấc mỗi đêm'}
+      ]},
+      {t:'5. Mất ngủ giữa giấc', opts:[
+        {v:0,l:'Không khó khăn'},
+        {v:1,l:'Bồn chồn, giấc ngủ bị xáo trộn'},
+        {v:2,l:'Thức giấc ban đêm — ra khỏi giường (trừ đi vệ sinh) tính 2'}
+      ]},
+      {t:'6. Mất ngủ cuối giấc', opts:[
+        {v:0,l:'Không khó khăn'},
+        {v:1,l:'Thức sớm nhưng ngủ lại được'},
+        {v:2,l:'Không thể ngủ lại sau khi đã dậy'}
+      ]},
+      {t:'7. Công việc và hoạt động', opts:[
+        {v:0,l:'Không khó khăn'},
+        {v:1,l:'Ý nghĩ/cảm giác mất khả năng, mệt mỏi, yếu sức liên quan hoạt động/công việc'},
+        {v:2,l:'Mất hứng thú với hoạt động, sở thích, công việc (do bệnh nhân nói hoặc biểu hiện gián tiếp qua sự thờ ơ, do dự, lưỡng lự)'},
+        {v:3,l:'Giảm thời gian thực tế dành cho hoạt động hoặc giảm năng suất — chấm 3 nếu không dành ít nhất 3 giờ/ngày cho hoạt động (không tính việc vặt thường lệ)'},
+        {v:4,l:'Ngừng làm việc vì bệnh hiện tại — chấm 4 nếu chỉ làm việc vặt thường lệ, hoặc không tự làm được cả việc vặt'}
+      ]},
+      {t:'8. Chậm chạp (tâm thần vận động) (chậm tư duy/lời nói, giảm khả năng tập trung, giảm hoạt động vận động)', opts:[
+        {v:0,l:'Lời nói và tư duy bình thường'},
+        {v:1,l:'Chậm nhẹ trong lúc phỏng vấn'},
+        {v:2,l:'Chậm rõ rệt trong lúc phỏng vấn'},
+        {v:3,l:'Phỏng vấn khó khăn'},
+        {v:4,l:'Sững sờ hoàn toàn (stupor)'}
+      ]},
+      {t:'9. Kích động', opts:[
+        {v:0,l:'Không có'},
+        {v:1,l:'Bồn chồn nhẹ'},
+        {v:2,l:'Nghịch tay, tóc...'},
+        {v:3,l:'Đi lại, không ngồi yên được'},
+        {v:4,l:'Vặn tay, cắn móng, giật tóc, cắn môi'}
+      ]},
+      {t:'10. Lo âu tâm thần', opts:[
+        {v:0,l:'Không khó khăn'},
+        {v:1,l:'Căng thẳng và dễ cáu chủ quan'},
+        {v:2,l:'Lo lắng về việc nhỏ nhặt'},
+        {v:3,l:'Thái độ lo lắng rõ trên nét mặt/giọng nói'},
+        {v:4,l:'Sợ hãi bộc lộ mà không cần hỏi'}
+      ]},
+      {t:'11. Lo âu cơ thể (biểu hiện sinh lý của lo âu: tiêu hóa — khô miệng, đầy hơi, khó tiêu, tiêu chảy, co thắt, ợ hơi; tim mạch — hồi hộp, đau đầu; hô hấp — thở nhanh, thở dài; tiểu nhiều lần; ra mồ hôi)', opts:[
+        {v:0,l:'Không có'},
+        {v:1,l:'Nhẹ'},
+        {v:2,l:'Vừa'},
+        {v:3,l:'Nặng'},
+        {v:4,l:'Mất khả năng hoạt động (incapacitating)'}
+      ]},
+      {t:'12. Triệu chứng cơ thể — tiêu hóa', opts:[
+        {v:0,l:'Không có'},
+        {v:1,l:'Chán ăn nhưng vẫn ăn được không cần thúc giục; nặng bụng'},
+        {v:2,l:'Khó ăn nếu không có người thúc giục; cần thuốc nhuận tràng hoặc thuốc tiêu hóa'}
+      ]},
+      {t:'13. Triệu chứng cơ thể chung', opts:[
+        {v:0,l:'Không có'},
+        {v:1,l:'Nặng nề ở tay chân, lưng, đầu; đau lưng, đau đầu, đau cơ; mất năng lượng, dễ mệt'},
+        {v:2,l:'Bất kỳ triệu chứng rõ ràng nào đều chấm 2'}
+      ]},
+      {t:'14. Triệu chứng sinh dục (giảm ham muốn tình dục, rối loạn kinh nguyệt...)', opts:[
+        {v:0,l:'Không có'},
+        {v:1,l:'Nhẹ'},
+        {v:2,l:'Nặng'}
+      ]},
+      {t:'15. Nghi bệnh (Hypochondriasis)', opts:[
+        {v:0,l:'Không có'},
+        {v:1,l:'Tự chú ý quá mức đến cơ thể'},
+        {v:2,l:'Bận tâm về sức khỏe'},
+        {v:3,l:'Than phiền thường xuyên, đòi hỏi giúp đỡ...'},
+        {v:4,l:'Hoang tưởng nghi bệnh'}
+      ]},
+      {t:'16. Sụt cân (theo lời bệnh nhân)', opts:[
+        {v:0,l:'Không sụt cân'},
+        {v:1,l:'Có thể sụt cân do bệnh hiện tại'},
+        {v:2,l:'Chắc chắn sụt cân (theo bệnh nhân)'}
+      ]},
+      {t:'17. Nhận thức bệnh (Insight)', opts:[
+        {v:0,l:'Thừa nhận bị trầm cảm và có bệnh'},
+        {v:1,l:'Thừa nhận có bệnh nhưng đổ lỗi do ăn uống, khí hậu, làm việc quá sức, virus, cần nghỉ ngơi...'},
+        {v:2,l:'Hoàn toàn phủ nhận có bệnh'}
+      ]}
     ],
-    levels:[[7,'Bình thường',0],[13,'Nhẹ',1],[18,'Trung bình',2],[22,'Nặng',3],[52,'Rất nặng',4]]
+    levels:[[7,'Bình thường / lui bệnh',0],[13,'Nhẹ',1],[18,'Trung bình',2],[22,'Nặng',3],[52,'Rất nặng',4]]
   },
   hama:{
     key:'hama', name:'HAM-A', full:'Hamilton Anxiety Rating Scale (14 mục)',
@@ -915,6 +1016,10 @@ function renderScalesTab(p){
     ${renderTrendCards(p.id, history)}
   `;
   c.querySelectorAll('.scale-btn').forEach(b=>b.addEventListener('click', ()=>openScaleModal(p, b.dataset.key)));
+  c.querySelectorAll('.score-row').forEach(tr=>tr.addEventListener('click', ()=>{
+    const entry = history.find(h=>h.id === Number(tr.dataset.id));
+    if(entry) openScaleResultModal(p, entry);
+  }));
 }
 
 function renderScoreTable(history){
@@ -923,7 +1028,7 @@ function renderScoreTable(history){
     <tbody>
       ${history.map(h=>{
         if(h.scaleKey==='dass21'){
-          return `<tr>
+          return `<tr class="score-row" data-id="${h.id}">
             <td>${esc(h.date)}</td>
             <td>DASS-21</td>
             <td>D:${h.subScores.depression} · A:${h.subScores.anxiety} · S:${h.subScores.stress}</td>
@@ -935,14 +1040,14 @@ function renderScoreTable(history){
           </tr>`;
         }
         if(h.scaleKey==='ybocs2'){
-          return `<tr>
+          return `<tr class="score-row" data-id="${h.id}">
             <td>${esc(h.date)}</td>
             <td>Y-BOCS-II</td>
             <td>Ám ảnh:${h.subScores.obsessions}/25 · Cưỡng chế:${h.subScores.compulsions}/25 · Tổng:${h.total}/50</td>
             <td><span class="level-pill lv-${h.level.lvl}">${h.level.label}</span></td>
           </tr>`;
         }
-        return `<tr>
+        return `<tr class="score-row" data-id="${h.id}">
           <td>${esc(h.date)}</td>
           <td>${SCALES[h.scaleKey].name}</td>
           <td>${h.total}</td>
@@ -1076,9 +1181,12 @@ function openYbocs2Modal(p, scale){
     <h3 style="font-family:var(--serif);font-size:15px;color:var(--teal-dark);margin:18px 0 6px;">${title}</h3>
     <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;">${instructions}</div>
     ${items.map((t,idx)=>`
-      <div class="yb-check-row" data-part="${part}" data-idx="${idx}" style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);">
-        <div style="font-size:12.5px;color:var(--ink);line-height:1.45;flex:1;">${t}</div>
-        <div class="yb-toggle" data-part="${part}" data-idx="${idx}" style="flex-shrink:0;padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:#fff;color:var(--ink-soft);white-space:nowrap;">Không / No</div>
+      <div class="yb-check-row">
+        <div class="yb-check-text">${t}</div>
+        <div class="yb-check-opts">
+          <div class="yb-opt" data-part="${part}" data-idx="${idx}" data-v="0">Không / No</div>
+          <div class="yb-opt" data-part="${part}" data-idx="${idx}" data-v="1">Có / Yes</div>
+        </div>
       </div>`).join('')}
   `;
 
@@ -1113,14 +1221,12 @@ function openYbocs2Modal(p, scale){
   `;
   openModal(body, true);
 
-  document.querySelectorAll('.yb-toggle').forEach(el=>{
+  document.querySelectorAll('.yb-opt').forEach(el=>{
     el.addEventListener('click', ()=>{
       const part = el.dataset.part, idx = el.dataset.idx;
-      const cur = pendingYbocs[part][idx] || 0;
-      const next = cur ? 0 : 1;
-      pendingYbocs[part][idx] = next;
-      if(next){ el.textContent = 'Có / Yes'; el.classList.add('picked'); el.style.background='var(--teal-dark)'; el.style.borderColor='var(--teal-dark)'; el.style.color='#fff'; }
-      else { el.textContent = 'Không / No'; el.classList.remove('picked'); el.style.background='#fff'; el.style.borderColor='var(--line)'; el.style.color='var(--ink-soft)'; }
+      pendingYbocs[part][idx] = Number(el.dataset.v);
+      document.querySelectorAll(`.yb-opt[data-part="${part}"][data-idx="${idx}"]`).forEach(o=>o.classList.remove('picked'));
+      el.classList.add('picked');
     });
   });
 
@@ -1151,6 +1257,85 @@ function openYbocs2Modal(p, scale){
   });
 }
 
+/* ---------- Xem chi tiết kết quả đã lưu ---------- */
+function openScaleResultModal(p, entry){
+  const scale = SCALES[entry.scaleKey];
+  const body = entry.scaleKey==='ybocs2' ? buildYbocsResultBody(p, scale, entry) : buildScaleResultBody(p, scale, entry);
+  openModal(body, true);
+}
+
+function buildScaleResultBody(p, scale, entry){
+  const scoreLine = scale.subscale
+    ? `D:${entry.subScores.depression} (${entry.subLevels.depression.label}) &nbsp; A:${entry.subScores.anxiety} (${entry.subLevels.anxiety.label}) &nbsp; S:${entry.subScores.stress} (${entry.subLevels.stress.label})`
+    : `${entry.total} — ${entry.level.label}`;
+  return `
+    <h2>${scale.name}</h2>
+    <div class="modal-sub">${scale.full} — ${esc(p.name)} · Ngày: ${esc(entry.date)}</div>
+    ${entry.riskFlag ? `<div class="risk-banner">⚠ Có dấu hiệu nguy cơ tự sát/tự hại ở mục đánh dấu — cần đánh giá lâm sàng trực tiếp thêm.</div>` : ''}
+    <div id="scale-items">
+      ${scale.items.map((it,idx)=>{
+        const val = entry.answers[idx];
+        return `<div class="sq">
+          <div class="sq-text">${it.t}${it.risk?' <span style="color:var(--red);">⚠</span>':''}</div>
+          <div class="sq-options">
+            ${it.opts.map(o=>`<div class="sq-opt sq-opt-ro${o.v===val?' picked':''}">${o.v} — ${o.l}</div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="score-preview">
+      <div style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;">Kết quả</div>
+      <div class="big" id="score-preview-val">${scoreLine}</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">Đóng</button>
+    </div>
+  `;
+}
+
+function buildYbocsResultBody(p, scale, entry){
+  const checklistBlock = (items, checkedIdx, title)=>`
+    <h3 style="font-family:var(--serif);font-size:15px;color:var(--teal-dark);margin:18px 0 6px;">${title}</h3>
+    ${items.map((t,idx)=>{
+      const checked = checkedIdx.includes(idx);
+      return `<div class="yb-check-row">
+        <div class="yb-check-text">${t}</div>
+        <div class="yb-check-opts">
+          <div class="yb-opt yb-opt-ro${!checked?' picked':''}">Không / No</div>
+          <div class="yb-opt yb-opt-ro${checked?' picked':''}">Có / Yes</div>
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+  const severityBlock = (dims, answers, title)=>`
+    <h3 style="font-family:var(--serif);font-size:15px;color:var(--teal-dark);margin:18px 0 6px;">${title}</h3>
+    ${dims.map((d,idx)=>{
+      const val = answers[idx];
+      return `<div class="sq">
+        <div class="sq-text">${d.q}</div>
+        <div class="sq-options">
+          ${d.opts.map(o=>`<div class="sq-opt sq-opt-ro${o.v===val?' picked':''}">${o.v} — ${o.l}</div>`).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+  return `
+    <h2>${scale.name}</h2>
+    <div class="modal-sub">${scale.full} — ${esc(p.name)} · Ngày: ${esc(entry.date)}</div>
+    ${checklistBlock(scale.partA, entry.checkedObsessions, 'Phần A — Các ám ảnh (Obsessions) · 30 ngày qua')}
+    ${severityBlock(scale.partB, entry.answersB||{}, 'Phần B — Mức độ ám ảnh')}
+    ${checklistBlock(scale.partC, entry.checkedCompulsions, 'Phần C — Các hành vi cưỡng chế (Compulsions) · 30 ngày qua')}
+    ${severityBlock(scale.partD, entry.answersD||{}, 'Phần D — Mức độ cưỡng chế')}
+    <div class="score-preview">
+      <div style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;">Kết quả (Phần B + Phần D)</div>
+      <div class="big" id="score-preview-val">Ám ảnh: ${entry.subScores.obsessions}/25 &nbsp; Cưỡng chế: ${entry.subScores.compulsions}/25 &nbsp; — Tổng: ${entry.total}/50 (${entry.level.label})</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">Đóng</button>
+    </div>
+  `;
+}
+
 function updateYbocsPreview(scale){
   const bDone = Object.keys(pendingYbocs.B).length;
   const dDone = Object.keys(pendingYbocs.D).length;
@@ -1175,6 +1360,7 @@ function computeYbocsResult(scale, pending, date){
     scaleKey:'ybocs2', date,
     subScores:{obsessions, compulsions}, total, level,
     checkedObsessions: checkedA, checkedCompulsions: checkedC,
+    answersB:{...pending.B}, answersD:{...pending.D},
     riskFlag:false, id:Date.now()
   };
 }
