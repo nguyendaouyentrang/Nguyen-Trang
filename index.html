@@ -246,14 +246,13 @@
   ::-webkit-scrollbar-thumb{background:#c3d3d1;border-radius:4px;}
 
   @media (max-width:800px){
-    #sidebar{position:fixed;inset:0;z-index:50;transform:translateX(-100%);transition:transform .2s;width:100%;}
-    #sidebar.open{transform:translateX(0);}
     #main{padding:18px 16px 60px;}
     .field-grid{grid-template-columns:1fr;}
     .form-2col{grid-template-columns:1fr;}
-    #mobile-back{display:inline-block !important;}
   }
+  #app.viewing-patient #sidebar{display:none;}
   #mobile-back{display:none;margin-bottom:14px;}
+  #app.viewing-patient #mobile-back{display:inline-block;}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -341,7 +340,7 @@ const SCALES = {
       {t:'Di chuyển/nói chậm đến mức người khác nhận thấy — hoặc ngược lại, bồn chồn hơn bình thường', opts:OPT4},
       {t:'Có ý nghĩ muốn chết hoặc tự làm hại bản thân theo cách nào đó', opts:OPT4, risk:true}
     ],
-    levels:[[4,'Tối thiểu',0],[9,'Nhẹ',1],[14,'Trung bình',2],[19,'Trung bình nặng',3],[27,'Nặng',4]]
+    levels:[[4,'Tối thiểu / Minimal',0],[9,'Nhẹ / Mild',1],[14,'Trung bình / Moderate',2],[19,'Trung bình nặng / Moderately severe',3],[27,'Nặng / Severe',4]]
   },
   gad7:{
     key:'gad7', name:'GAD-7', full:'Generalized Anxiety Disorder-7 — Lo âu',
@@ -355,7 +354,7 @@ const SCALES = {
       {t:'Dễ bực bội hoặc cáu gắt', opts:OPT4},
       {t:'Cảm thấy sợ hãi như thể điều gì đó khủng khiếp sắp xảy ra', opts:OPT4}
     ],
-    levels:[[4,'Tối thiểu',0],[9,'Nhẹ',1],[14,'Trung bình',2],[21,'Nặng',3]]
+    levels:[[4,'Tối thiểu / Minimal',0],[9,'Nhẹ / Mild',1],[14,'Trung bình / Moderate',2],[21,'Nặng / Severe',3]]
   },
   dass21:{
     key:'dass21', name:'DASS-21', full:'Depression Anxiety Stress Scales-21',
@@ -498,7 +497,7 @@ const SCALES = {
         {v:2,l:'Hoàn toàn phủ nhận có bệnh'}
       ]}
     ],
-    levels:[[7,'Bình thường / lui bệnh',0],[13,'Nhẹ',1],[18,'Trung bình',2],[22,'Nặng',3],[52,'Rất nặng',4]]
+    levels:[[7,'Bình thường / lui bệnh — Normal / remission',0],[13,'Nhẹ / Mild',1],[18,'Trung bình / Moderate',2],[22,'Nặng / Severe',3],[52,'Rất nặng / Very severe',4]]
   },
   hama:{
     key:'hama', name:'HAM-A', full:'Hamilton Anxiety Rating Scale (14 mục)',
@@ -519,7 +518,7 @@ const SCALES = {
       {t:'13. Triệu chứng thần kinh tự chủ — Khô miệng, vã mồ hôi, chóng mặt', ...ham(4)},
       {t:'14. Hành vi lúc phỏng vấn — Bồn chồn, run tay, vẻ mặt căng thẳng', ...ham(4)}
     ],
-    levels:[[17,'Nhẹ',0],[24,'Nhẹ - trung bình',1],[30,'Trung bình - nặng',2],[56,'Nặng',3]]
+    levels:[[17,'Nhẹ / Mild',0],[24,'Nhẹ - trung bình / Mild-moderate',1],[30,'Trung bình - nặng / Moderate-severe',2],[56,'Nặng / Severe',3]]
   },
   asrm:{
     key:'asrm', name:'ASRM', full:'Altman Self-Rating Mania Scale — Hưng cảm / Hưng cảm nhẹ',
@@ -907,9 +906,9 @@ function renderSidebar(){
       activePatientId = el.dataset.id;
       activeTab='overview';
       await loadPatientExtras(activePatientId);
+      document.getElementById('app').classList.add('viewing-patient');
       renderSidebar();
       renderMain();
-      if(window.innerWidth<=800) document.getElementById('sidebar').classList.remove('open');
     });
   });
 }
@@ -927,6 +926,7 @@ document.getElementById('add-patient-btn').addEventListener('click', ()=>openAdd
 function renderMain(){
   const main = document.getElementById('main');
   if(!activePatientId){
+    document.getElementById('app').classList.remove('viewing-patient');
     main.innerHTML = `<div id="empty-state">
       <div class="mark">Psychiatry</div>
       <div>Chọn một bệnh nhân ở danh sách bên trái để xem hồ sơ.<br>Nếu đây là lần đầu sử dụng, bấm <b>Nhập dữ liệu</b> ở góc trái.</div>
@@ -937,7 +937,7 @@ function renderMain(){
   if(!p){ activePatientId=null; renderMain(); return; }
 
   main.innerHTML = `
-    <button id="mobile-back" class="btn">‹ Danh sách</button>
+    <button id="mobile-back" class="btn">‹ Danh sách / Back</button>
     <div class="ph-header">
       <div>
         <div class="ph-title">${esc(p.name||'(Chưa có tên)')}</div>
@@ -956,7 +956,11 @@ function renderMain(){
     </div>
     <div id="tab-content"></div>
   `;
-  document.getElementById('mobile-back').addEventListener('click', ()=>document.getElementById('sidebar').classList.add('open'));
+  document.getElementById('mobile-back').addEventListener('click', ()=>{
+    activePatientId = null;
+    renderSidebar();
+    renderMain();
+  });
   document.getElementById('edit-patient-btn').addEventListener('click', ()=>openAddPatientModal(p));
   document.getElementById('delete-patient-btn').addEventListener('click', ()=>deletePatient(p.id));
   main.querySelectorAll('.tab').forEach(t=>t.addEventListener('click', ()=>{ activeTab=t.dataset.tab; renderMain(); }));
@@ -1061,7 +1065,7 @@ function renderScalesTab(p){
       </div>
     </div>
     <div class="card">
-      <h3>Lịch sử kết quả</h3>
+      <h3>Lịch sử kết quả / Result History</h3>
       ${history.length===0 ? '<div style="color:var(--ink-soft);font-size:13px;">Chưa có kết quả thang đo nào.</div>' : renderScoreTable(history)}
     </div>
     ${renderTrendCards(p.id, history)}
@@ -1089,7 +1093,7 @@ function dassScoreHtml(result){
 
 function renderScoreTable(history){
   return `<table class="score-table">
-    <thead><tr><th>Ngày</th><th>Thang đo</th><th>Điểm</th><th>Mức độ</th></tr></thead>
+    <thead><tr><th>Ngày / Date</th><th>Thang đo / Scale</th><th>Điểm / Score</th><th>Mức độ / Level</th></tr></thead>
     <tbody>
       ${history.map(h=>{
         if(h.scaleKey==='dass21'){
@@ -1097,13 +1101,13 @@ function renderScoreTable(history){
             <td>${esc(h.date)}</td>
             <td>DASS-21</td>
             <td>
-              Trầm cảm (D): ${h.subScores.depression}<br>
-              Lo âu (A): ${h.subScores.anxiety}<br>
+              Trầm cảm (Depression, D): ${h.subScores.depression}<br>
+              Lo âu (Anxiety, A): ${h.subScores.anxiety}<br>
               Stress (S): ${h.subScores.stress}
             </td>
             <td>
-              <span class="level-pill lv-${h.subLevels.depression.lvl}">Trầm cảm: ${h.subLevels.depression.label}</span><br>
-              <span class="level-pill lv-${h.subLevels.anxiety.lvl}" style="margin-top:4px;display:inline-block;">Lo âu: ${h.subLevels.anxiety.label}</span><br>
+              <span class="level-pill lv-${h.subLevels.depression.lvl}">Trầm cảm / Depression: ${h.subLevels.depression.label}</span><br>
+              <span class="level-pill lv-${h.subLevels.anxiety.lvl}" style="margin-top:4px;display:inline-block;">Lo âu / Anxiety: ${h.subLevels.anxiety.label}</span><br>
               <span class="level-pill lv-${h.subLevels.stress.lvl}" style="margin-top:4px;display:inline-block;">Stress: ${h.subLevels.stress.label}</span>
             </td>
           </tr>`;
@@ -1112,7 +1116,7 @@ function renderScoreTable(history){
           return `<tr class="score-row" data-id="${h.id}">
             <td>${esc(h.date)}</td>
             <td>Y-BOCS-II</td>
-            <td>Ám ảnh:${h.subScores.obsessions}/25 · Cưỡng chế:${h.subScores.compulsions}/25 · Tổng:${h.total}/50</td>
+            <td>Ám ảnh / Obsessions: ${h.subScores.obsessions}/25 · Cưỡng chế / Compulsions: ${h.subScores.compulsions}/25 · Tổng / Total: ${h.total}/50</td>
             <td><span class="level-pill lv-${h.level.lvl}">${h.level.label}</span></td>
           </tr>`;
         }
@@ -1123,11 +1127,11 @@ function renderScoreTable(history){
             <td>CAARS-S:S</td>
             <td>
               A:${h.rawScores.A} · B:${h.rawScores.B} · C:${h.rawScores.C} · D:${h.rawScores.D} · E:${h.rawScores.E}<br>
-              Inconsistency: ${h.inconsistency}${h.inconsistency>=8?' ⚠':''}
+              Chỉ số không nhất quán / Inconsistency Index: ${h.inconsistency}${h.inconsistency>=8?' ⚠':''}
             </td>
             <td>
-              ${h.normLabel ? esc(h.normLabel) : 'Không rõ nhóm chuẩn'}<br>
-              <span style="font-size:11px;color:var(--ink-soft);">${hasT ? 'Đã nhập T-score' : 'Chưa nhập T-score'}</span>
+              ${h.normLabel ? esc(h.normLabel) : 'Không rõ nhóm chuẩn / Norm group unknown'}<br>
+              <span style="font-size:11px;color:var(--ink-soft);">${hasT ? 'Đã nhập T-score / T-score entered' : 'Chưa nhập T-score / T-score not entered'}</span>
             </td>
           </tr>`;
         }
@@ -1824,6 +1828,7 @@ function openAddPatientModal(existing){
     }
     await storageSet('patients_v1', patients);
     activePatientId = data.id;
+    document.getElementById('app').classList.add('viewing-patient');
     closeModal();
     renderSidebar();
     renderMain();
