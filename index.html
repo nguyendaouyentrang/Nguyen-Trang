@@ -161,6 +161,10 @@
   .score-table th{text-align:left;padding:7px 10px;color:var(--ink-soft);font-weight:600;border-bottom:1px solid var(--line);font-size:11px;text-transform:uppercase;}
   .score-table td{padding:9px 10px;border-bottom:1px solid var(--line);}
   .score-table tr:last-child td{border-bottom:none;}
+  .score-row{cursor:pointer;}
+  .score-row:hover td{background:var(--teal-pale);}
+  .sq-opt-ro{cursor:default;}
+  .sq-opt-ro:not(.picked){opacity:0.45;}
   .level-pill{display:inline-block;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700;}
   .lv-0{background:var(--green-pale);color:var(--green);}
   .lv-1{background:var(--amber-pale);color:var(--amber);}
@@ -1001,6 +1005,10 @@ function renderScalesTab(p){
     ${renderTrendCards(p.id, history)}
   `;
   c.querySelectorAll('.scale-btn').forEach(b=>b.addEventListener('click', ()=>openScaleModal(p, b.dataset.key)));
+  c.querySelectorAll('.score-row').forEach(tr=>tr.addEventListener('click', ()=>{
+    const entry = history.find(h=>h.id === Number(tr.dataset.id));
+    if(entry) openScaleResultModal(p, entry);
+  }));
 }
 
 function renderScoreTable(history){
@@ -1009,7 +1017,7 @@ function renderScoreTable(history){
     <tbody>
       ${history.map(h=>{
         if(h.scaleKey==='dass21'){
-          return `<tr>
+          return `<tr class="score-row" data-id="${h.id}">
             <td>${esc(h.date)}</td>
             <td>DASS-21</td>
             <td>D:${h.subScores.depression} · A:${h.subScores.anxiety} · S:${h.subScores.stress}</td>
@@ -1021,14 +1029,14 @@ function renderScoreTable(history){
           </tr>`;
         }
         if(h.scaleKey==='ybocs2'){
-          return `<tr>
+          return `<tr class="score-row" data-id="${h.id}">
             <td>${esc(h.date)}</td>
             <td>Y-BOCS-II</td>
             <td>Ám ảnh:${h.subScores.obsessions}/25 · Cưỡng chế:${h.subScores.compulsions}/25 · Tổng:${h.total}/50</td>
             <td><span class="level-pill lv-${h.level.lvl}">${h.level.label}</span></td>
           </tr>`;
         }
-        return `<tr>
+        return `<tr class="score-row" data-id="${h.id}">
           <td>${esc(h.date)}</td>
           <td>${SCALES[h.scaleKey].name}</td>
           <td>${h.total}</td>
@@ -1237,6 +1245,80 @@ function openYbocs2Modal(p, scale){
   });
 }
 
+/* ---------- Xem chi tiết kết quả đã lưu ---------- */
+function openScaleResultModal(p, entry){
+  const scale = SCALES[entry.scaleKey];
+  const body = entry.scaleKey==='ybocs2' ? buildYbocsResultBody(p, scale, entry) : buildScaleResultBody(p, scale, entry);
+  openModal(body, true);
+}
+
+function buildScaleResultBody(p, scale, entry){
+  const scoreLine = scale.subscale
+    ? `D:${entry.subScores.depression} (${entry.subLevels.depression.label}) &nbsp; A:${entry.subScores.anxiety} (${entry.subLevels.anxiety.label}) &nbsp; S:${entry.subScores.stress} (${entry.subLevels.stress.label})`
+    : `${entry.total} — ${entry.level.label}`;
+  return `
+    <h2>${scale.name}</h2>
+    <div class="modal-sub">${scale.full} — ${esc(p.name)} · Ngày: ${esc(entry.date)}</div>
+    ${entry.riskFlag ? `<div class="risk-banner">⚠ Có dấu hiệu nguy cơ tự sát/tự hại ở mục đánh dấu — cần đánh giá lâm sàng trực tiếp thêm.</div>` : ''}
+    <div id="scale-items">
+      ${scale.items.map((it,idx)=>{
+        const val = entry.answers[idx];
+        return `<div class="sq">
+          <div class="sq-text">${it.t}${it.risk?' <span style="color:var(--red);">⚠</span>':''}</div>
+          <div class="sq-options">
+            ${it.opts.map(o=>`<div class="sq-opt sq-opt-ro${o.v===val?' picked':''}">${o.v} — ${o.l}</div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="score-preview">
+      <div style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;">Kết quả</div>
+      <div class="big" id="score-preview-val">${scoreLine}</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">Đóng</button>
+    </div>
+  `;
+}
+
+function buildYbocsResultBody(p, scale, entry){
+  const checklistBlock = (items, checkedIdx, title)=>`
+    <h3 style="font-family:var(--serif);font-size:15px;color:var(--teal-dark);margin:18px 0 6px;">${title}</h3>
+    ${items.map((t,idx)=>`
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);">
+        <div style="font-size:12.5px;color:var(--ink);line-height:1.45;flex:1;">${t}</div>
+        <div style="flex-shrink:0;padding:5px 12px;border-radius:20px;font-size:11.5px;font-weight:600;white-space:nowrap;border:1px solid var(--line);${checkedIdx.includes(idx) ? 'background:var(--teal-dark);border-color:var(--teal-dark);color:#fff;' : 'background:#fff;color:var(--ink-soft);'}">${checkedIdx.includes(idx) ? 'Có / Yes' : 'Không / No'}</div>
+      </div>`).join('')}
+  `;
+  const severityBlock = (dims, answers, title)=>`
+    <h3 style="font-family:var(--serif);font-size:15px;color:var(--teal-dark);margin:18px 0 6px;">${title}</h3>
+    ${dims.map((d,idx)=>{
+      const val = answers[idx];
+      return `<div class="sq">
+        <div class="sq-text">${d.q}</div>
+        <div class="sq-options">
+          ${d.opts.map(o=>`<div class="sq-opt sq-opt-ro${o.v===val?' picked':''}">${o.v} — ${o.l}</div>`).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+  `;
+  return `
+    <h2>${scale.name}</h2>
+    <div class="modal-sub">${scale.full} — ${esc(p.name)} · Ngày: ${esc(entry.date)}</div>
+    ${checklistBlock(scale.partA, entry.checkedObsessions, 'Phần A — Các ám ảnh (Obsessions) · 30 ngày qua')}
+    ${severityBlock(scale.partB, entry.answersB||{}, 'Phần B — Mức độ ám ảnh')}
+    ${checklistBlock(scale.partC, entry.checkedCompulsions, 'Phần C — Các hành vi cưỡng chế (Compulsions) · 30 ngày qua')}
+    ${severityBlock(scale.partD, entry.answersD||{}, 'Phần D — Mức độ cưỡng chế')}
+    <div class="score-preview">
+      <div style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;">Kết quả (Phần B + Phần D)</div>
+      <div class="big" id="score-preview-val">Ám ảnh: ${entry.subScores.obsessions}/25 &nbsp; Cưỡng chế: ${entry.subScores.compulsions}/25 &nbsp; — Tổng: ${entry.total}/50 (${entry.level.label})</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">Đóng</button>
+    </div>
+  `;
+}
+
 function updateYbocsPreview(scale){
   const bDone = Object.keys(pendingYbocs.B).length;
   const dDone = Object.keys(pendingYbocs.D).length;
@@ -1261,6 +1343,7 @@ function computeYbocsResult(scale, pending, date){
     scaleKey:'ybocs2', date,
     subScores:{obsessions, compulsions}, total, level,
     checkedObsessions: checkedA, checkedCompulsions: checkedC,
+    answersB:{...pending.B}, answersD:{...pending.D},
     riskFlag:false, id:Date.now()
   };
 }
