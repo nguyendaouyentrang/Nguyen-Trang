@@ -1012,7 +1012,7 @@ function renderTimeline(p){
         <div class="timeline-entry">
           <div class="timeline-dot-col"><div class="timeline-dot"></div>${i<entries.length-1?'<div class="timeline-line"></div>':''}</div>
           <div class="timeline-body">
-            <div class="timeline-date">${esc(e.date)}</div>
+            <div class="timeline-date">${esc(e.date)} <button class="btn edit-visit-btn" data-id="${e.id}" style="padding:2px 9px;font-size:11px;margin-left:8px;font-weight:600;">Sửa</button></div>
             ${e.note ? `<div class="timeline-note">${esc(e.note)}</div>` : ''}
             ${e.medication ? `<div class="timeline-med"><strong>Thuốc/Xử trí:</strong> ${esc(e.medication)}</div>` : ''}
           </div>
@@ -1020,18 +1020,24 @@ function renderTimeline(p){
     </div>
   `;
   document.getElementById('add-visit-btn').addEventListener('click', ()=>openAddVisitModal(p));
+  c.querySelectorAll('.edit-visit-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const entry = entries.find(e=>e.id === Number(btn.dataset.id));
+      if(entry) openAddVisitModal(p, entry);
+    });
+  });
 }
 
-function openAddVisitModal(p){
+function openAddVisitModal(p, existingEntry){
   openModal(`
-    <h2>Thêm lần khám</h2>
+    <h2>${existingEntry ? 'Sửa lần khám' : 'Thêm lần khám'}</h2>
     <div class="modal-sub">${esc(p.name)}</div>
-    <div class="form-row"><label>Ngày khám</label><input type="date" id="visit-date" value="${new Date().toISOString().slice(0,10)}"></div>
-    <div class="form-row"><label>Ghi chú lâm sàng</label><textarea id="visit-note" placeholder="Diễn tiến, triệu chứng, đánh giá..."></textarea></div>
-    <div class="form-row"><label>Thuốc / Xử trí</label><textarea id="visit-med" placeholder="Thuốc kê đơn, liều dùng, hướng xử trí..."></textarea></div>
+    <div class="form-row"><label>Ngày khám</label><input type="date" id="visit-date" value="${existingEntry ? existingEntry.date : new Date().toISOString().slice(0,10)}"></div>
+    <div class="form-row"><label>Ghi chú lâm sàng</label><textarea id="visit-note" placeholder="Diễn tiến, triệu chứng, đánh giá...">${esc(existingEntry ? (existingEntry.note||'') : '')}</textarea></div>
+    <div class="form-row"><label>Thuốc / Xử trí</label><textarea id="visit-med" placeholder="Thuốc kê đơn, liều dùng, hướng xử trí...">${esc(existingEntry ? (existingEntry.medication||'') : '')}</textarea></div>
     <div class="modal-actions">
       <button class="btn" id="modal-cancel">Hủy</button>
-      <button class="btn btn-primary" id="modal-save">Lưu</button>
+      <button class="btn btn-primary" id="modal-save">${existingEntry ? 'Lưu thay đổi' : 'Lưu'}</button>
     </div>
   `);
   document.getElementById('modal-save').addEventListener('click', async ()=>{
@@ -1040,11 +1046,17 @@ function openAddVisitModal(p){
     const medication = document.getElementById('visit-med').value.trim();
     if(!date){ toast('Vui lòng chọn ngày khám'); return; }
     timelines[p.id] = timelines[p.id]||[];
-    timelines[p.id].push({date, note, medication, id: Date.now()});
+    if(existingEntry){
+      const i = timelines[p.id].findIndex(x=>x.id===existingEntry.id);
+      const updated = {date, note, medication, id: existingEntry.id};
+      if(i>-1) timelines[p.id][i] = updated; else timelines[p.id].push(updated);
+    } else {
+      timelines[p.id].push({date, note, medication, id: Date.now()});
+    }
     await storageSet('timeline_'+p.id, timelines[p.id]);
     closeModal();
     renderTimeline(p);
-    toast('Đã lưu lần khám');
+    toast(existingEntry ? 'Đã lưu thay đổi' : 'Đã lưu lần khám');
   });
 }
 
