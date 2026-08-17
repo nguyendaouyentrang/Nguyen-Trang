@@ -1082,7 +1082,7 @@ function dassScoreHtml(result){
     <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <div style="font-family:var(--sans);font-size:12.5px;font-weight:700;color:var(--ink);min-width:150px;">${label} <span style="color:var(--ink-soft);font-weight:500;">(${abbr})</span></div>
       <div style="font-family:var(--serif);font-size:20px;font-weight:700;color:var(--teal-dark);">${score}</div>
-      <span class="level-pill lv-${lvl.lvl}">${lvl.label}</span>
+      <span class="level-pill lv-${lvl.lvl}">${bi(lvl.label)}</span>
     </div>`;
   return `<div style="display:flex;flex-direction:column;gap:8px;">
     ${row('Trầm cảm','Depression', result.subScores.depression, result.subLevels.depression)}
@@ -1093,7 +1093,7 @@ function dassScoreHtml(result){
 
 function renderScoreTable(history){
   return `<table class="score-table">
-    <thead><tr><th>Ngày / Date</th><th>Thang đo / Scale</th><th>Điểm / Score</th><th>Mức độ / Level</th></tr></thead>
+    <thead><tr><th><strong>Ngày</strong> / Date</th><th><strong>Thang đo</strong> / Scale</th><th><strong>Điểm</strong> / Score</th><th><strong>Mức độ</strong> / Level</th></tr></thead>
     <tbody>
       ${history.map(h=>{
         if(h.scaleKey==='dass21'){
@@ -1101,14 +1101,14 @@ function renderScoreTable(history){
             <td>${esc(h.date)}</td>
             <td>DASS-21</td>
             <td>
-              Trầm cảm (Depression, D): ${h.subScores.depression}<br>
-              Lo âu (Anxiety, A): ${h.subScores.anxiety}<br>
+              <strong>Trầm cảm</strong> (Depression, D): ${h.subScores.depression}<br>
+              <strong>Lo âu</strong> (Anxiety, A): ${h.subScores.anxiety}<br>
               Stress (S): ${h.subScores.stress}
             </td>
             <td>
-              <span class="level-pill lv-${h.subLevels.depression.lvl}">Trầm cảm / Depression: ${h.subLevels.depression.label}</span><br>
-              <span class="level-pill lv-${h.subLevels.anxiety.lvl}" style="margin-top:4px;display:inline-block;">Lo âu / Anxiety: ${h.subLevels.anxiety.label}</span><br>
-              <span class="level-pill lv-${h.subLevels.stress.lvl}" style="margin-top:4px;display:inline-block;">Stress: ${h.subLevels.stress.label}</span>
+              <span class="level-pill lv-${h.subLevels.depression.lvl}"><strong>Trầm cảm</strong> / Depression: ${bi(h.subLevels.depression.label)}</span><br>
+              <span class="level-pill lv-${h.subLevels.anxiety.lvl}" style="margin-top:4px;display:inline-block;"><strong>Lo âu</strong> / Anxiety: ${bi(h.subLevels.anxiety.label)}</span><br>
+              <span class="level-pill lv-${h.subLevels.stress.lvl}" style="margin-top:4px;display:inline-block;">Stress: ${bi(h.subLevels.stress.label)}</span>
             </td>
           </tr>`;
         }
@@ -1116,8 +1116,8 @@ function renderScoreTable(history){
           return `<tr class="score-row" data-id="${h.id}">
             <td>${esc(h.date)}</td>
             <td>Y-BOCS-II</td>
-            <td>Ám ảnh / Obsessions: ${h.subScores.obsessions}/25 · Cưỡng chế / Compulsions: ${h.subScores.compulsions}/25 · Tổng / Total: ${h.total}/50</td>
-            <td><span class="level-pill lv-${h.level.lvl}">${h.level.label}</span></td>
+            <td><strong>Ám ảnh</strong> / Obsessions: ${h.subScores.obsessions}/25 · <strong>Cưỡng chế</strong> / Compulsions: ${h.subScores.compulsions}/25 · <strong>Tổng</strong> / Total: ${h.total}/50</td>
+            <td><span class="level-pill lv-${h.level.lvl}">${bi(h.level.label)}</span></td>
           </tr>`;
         }
         if(h.scaleKey==='caars'){
@@ -1127,11 +1127,11 @@ function renderScoreTable(history){
             <td>CAARS-S:S</td>
             <td>
               A:${h.rawScores.A} · B:${h.rawScores.B} · C:${h.rawScores.C} · D:${h.rawScores.D} · E:${h.rawScores.E}<br>
-              Chỉ số không nhất quán / Inconsistency Index: ${h.inconsistency}${h.inconsistency>=8?' ⚠':''}
+              <strong>Chỉ số không nhất quán</strong> / Inconsistency Index: ${h.inconsistency}${h.inconsistency>=8?' ⚠':''}
             </td>
             <td>
-              ${h.normLabel ? esc(h.normLabel) : 'Không rõ nhóm chuẩn / Norm group unknown'}<br>
-              <span style="font-size:11px;color:var(--ink-soft);">${hasT ? 'Đã nhập T-score / T-score entered' : 'Chưa nhập T-score / T-score not entered'}</span>
+              ${h.normLabel ? esc(h.normLabel) : '<strong>Không rõ nhóm chuẩn</strong> / Norm group unknown'}<br>
+              <span style="font-size:11px;color:var(--ink-soft);">${hasT ? '<strong>Đã nhập T-score</strong> / T-score entered' : '<strong>Chưa nhập T-score</strong> / T-score not entered'}</span>
             </td>
           </tr>`;
         }
@@ -1139,7 +1139,7 @@ function renderScoreTable(history){
           <td>${esc(h.date)}</td>
           <td>${SCALES[h.scaleKey].name}</td>
           <td>${h.total}</td>
-          <td><span class="level-pill lv-${h.level.lvl}">${h.level.label}</span></td>
+          <td><span class="level-pill lv-${h.level.lvl}">${bi(h.level.label)}</span></td>
         </tr>`;
       }).join('')}
     </tbody>
@@ -1244,7 +1244,7 @@ function dassTrendChart(arr, subKey, label, abbr, thresholds, color){
   return `<div style="margin-bottom:18px;">
     <div style="font-size:12px;color:var(--ink);font-weight:700;margin-bottom:4px;">
       ${label} <span style="color:var(--ink-soft);font-weight:500;">(${abbr})</span> — mới nhất: ${values[values.length-1]}
-      <span class="level-pill lv-${lastLevel.lvl}" style="margin-left:6px;">${lastLevel.label}</span>
+      <span class="level-pill lv-${lastLevel.lvl}" style="margin-left:6px;">${bi(lastLevel.label)}</span>
     </div>
     <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:120px;display:block;" preserveAspectRatio="none">
       ${bandsSvg}
@@ -1260,24 +1260,24 @@ function dassTrendChart(arr, subKey, label, abbr, thresholds, color){
 }
 
 /* ---------- Scale-taking modal ---------- */
-function openScaleModal(p, scaleKey){
+function openScaleModal(p, scaleKey, existingEntry){
   const scale = SCALES[scaleKey];
-  if(scale.type==='ybocs2'){ openYbocs2Modal(p, scale); return; }
-  if(scale.type==='caars'){ openCaarsModal(p, scale); return; }
+  if(scale.type==='ybocs2'){ openYbocs2Modal(p, scale, existingEntry); return; }
+  if(scale.type==='caars'){ openCaarsModal(p, scale, existingEntry); return; }
   pendingScaleKey = scaleKey;
-  pendingScaleAnswers = {};
+  pendingScaleAnswers = existingEntry ? {...existingEntry.answers} : {};
 
   const body = `
-    <h2>${scale.name}</h2>
+    <h2>${existingEntry ? 'Sửa — ' : ''}${scale.name}</h2>
     <div class="modal-sub">${scale.full} — ${esc(p.name)}</div>
-    <div class="form-row"><label>Ngày đánh giá</label><input type="date" id="scale-date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="form-row"><label>Ngày đánh giá</label><input type="date" id="scale-date" value="${existingEntry ? existingEntry.date : new Date().toISOString().slice(0,10)}"></div>
     <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:14px;">${scale.instructions}</div>
     <div id="scale-items">
       ${scale.items.map((it,idx)=>`
         <div class="sq">
           <div class="sq-text">${it.t}${it.risk?' <span style="color:var(--red);">⚠</span>':''}</div>
           <div class="sq-options" data-idx="${idx}">
-            ${it.opts.map(o=>`<div class="sq-opt" data-idx="${idx}" data-v="${o.v}">${o.v} — ${o.l}</div>`).join('')}
+            ${it.opts.map(o=>`<div class="sq-opt${existingEntry && existingEntry.answers[idx]===o.v?' picked':''}" data-idx="${idx}" data-v="${o.v}">${o.v} — ${o.l}</div>`).join('')}
           </div>
         </div>`).join('')}
     </div>
@@ -1288,10 +1288,11 @@ function openScaleModal(p, scaleKey){
     </div>
     <div class="modal-actions">
       <button class="btn" id="modal-cancel">Hủy</button>
-      <button class="btn btn-primary" id="modal-save">Lưu kết quả</button>
+      <button class="btn btn-primary" id="modal-save">${existingEntry ? 'Lưu thay đổi' : 'Lưu kết quả'}</button>
     </div>
   `;
   openModal(body, true);
+  if(existingEntry) updateScorePreview(scale);
 
   document.querySelectorAll('#scale-items .sq-opt').forEach(el=>{
     el.addEventListener('click', ()=>{
@@ -1311,26 +1312,32 @@ function openScaleModal(p, scaleKey){
     const date = document.getElementById('scale-date').value;
     const result = computeScaleResult(scale, pendingScaleAnswers, date);
     scaleData[p.id] = scaleData[p.id]||[];
-    scaleData[p.id].push(result);
+    if(existingEntry){
+      result.id = existingEntry.id;
+      const i = scaleData[p.id].findIndex(x=>x.id===existingEntry.id);
+      if(i>-1) scaleData[p.id][i] = result; else scaleData[p.id].push(result);
+    } else {
+      scaleData[p.id].push(result);
+    }
     await storageSet('scales_'+p.id, scaleData[p.id]);
     closeModal();
     renderSidebar();
     renderScalesTab(p);
-    toast('Đã lưu kết quả '+scale.name);
+    toast(existingEntry ? 'Đã lưu thay đổi '+scale.name : 'Đã lưu kết quả '+scale.name);
   });
 }
 
-function openCaarsModal(p, scale){
+function openCaarsModal(p, scale, existingEntry){
   pendingScaleKey = 'caars';
-  pendingScaleAnswers = {};
+  pendingScaleAnswers = existingEntry ? {...existingEntry.answers} : {};
   const today = new Date().toISOString().slice(0,10);
-  const age = ageAt(p.birth, today);
+  const age = ageAt(p.birth, existingEntry ? existingEntry.date : today);
   const norm = caarsNormGroup(p.gender, age);
 
   const body = `
-    <h2>${scale.name}</h2>
+    <h2>${existingEntry ? 'Sửa — ' : ''}${scale.name}</h2>
     <div class="modal-sub">${scale.full} — ${esc(p.name)}</div>
-    <div class="form-row"><label>Ngày đánh giá</label><input type="date" id="scale-date" value="${today}"></div>
+    <div class="form-row"><label>Ngày đánh giá</label><input type="date" id="scale-date" value="${existingEntry ? existingEntry.date : today}"></div>
     <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;">${scale.instructions}</div>
     <div id="caars-norm-note" style="font-size:12px;color:var(--ink-soft);background:var(--paper);border-radius:8px;padding:8px 12px;margin-bottom:14px;">${esc(norm.label)}</div>
     <div id="scale-items">
@@ -1338,7 +1345,7 @@ function openCaarsModal(p, scale){
         <div class="sq">
           <div class="sq-text">${it.t}</div>
           <div class="sq-options" data-idx="${idx}">
-            ${it.opts.map(o=>`<div class="sq-opt" data-idx="${idx}" data-v="${o.v}">${o.v} — ${o.l}</div>`).join('')}
+            ${it.opts.map(o=>`<div class="sq-opt${existingEntry && existingEntry.answers[idx]===o.v?' picked':''}" data-idx="${idx}" data-v="${o.v}">${o.v} — ${o.l}</div>`).join('')}
           </div>
         </div>`).join('')}
     </div>
@@ -1353,7 +1360,7 @@ function openCaarsModal(p, scale){
         ${['A','B','C','D','E'].map(k=>`
           <div class="form-row">
             <label>${scale.subscales[k].label}</label>
-            <input type="number" min="0" max="100" id="caars-t-${k}" placeholder="Nhập T-score">
+            <input type="number" min="0" max="100" id="caars-t-${k}" placeholder="Nhập T-score" value="${existingEntry && existingEntry.tscores && existingEntry.tscores[k]!=null ? existingEntry.tscores[k] : ''}">
             <div id="caars-t-${k}-interp" style="font-size:11.5px;color:var(--teal-dark);margin-top:4px;font-weight:600;min-height:14px;"></div>
           </div>
         `).join('')}
@@ -1361,10 +1368,11 @@ function openCaarsModal(p, scale){
     </div>
     <div class="modal-actions">
       <button class="btn" id="modal-cancel">Hủy</button>
-      <button class="btn btn-primary" id="modal-save">Lưu kết quả</button>
+      <button class="btn btn-primary" id="modal-save">${existingEntry ? 'Lưu thay đổi' : 'Lưu kết quả'}</button>
     </div>
   `;
   openModal(body, true);
+  if(existingEntry) updateCaarsRawPreview(scale);
 
   document.querySelectorAll('#scale-items .sq-opt').forEach(el=>{
     el.addEventListener('click', ()=>{
@@ -1377,10 +1385,13 @@ function openCaarsModal(p, scale){
   });
 
   ['A','B','C','D','E'].forEach(k=>{
-    document.getElementById('caars-t-'+k).addEventListener('input', (e)=>{
+    const input = document.getElementById('caars-t-'+k);
+    const interp = tscoreInterpret(input.value);
+    document.getElementById('caars-t-'+k+'-interp').textContent = interp ? `T=${input.value} — ${interp}` : '';
+    input.addEventListener('input', (e)=>{
       const v = e.target.value;
-      const interp = tscoreInterpret(v);
-      document.getElementById('caars-t-'+k+'-interp').textContent = interp ? `T=${v} — ${interp}` : '';
+      const interp2 = tscoreInterpret(v);
+      document.getElementById('caars-t-'+k+'-interp').textContent = interp2 ? `T=${v} — ${interp2}` : '';
     });
   });
 
@@ -1396,50 +1407,67 @@ function openCaarsModal(p, scale){
       result.tscores[k] = v==='' ? null : Number(v);
     });
     scaleData[p.id] = scaleData[p.id]||[];
-    scaleData[p.id].push(result);
+    if(existingEntry){
+      result.id = existingEntry.id;
+      const i = scaleData[p.id].findIndex(x=>x.id===existingEntry.id);
+      if(i>-1) scaleData[p.id][i] = result; else scaleData[p.id].push(result);
+    } else {
+      scaleData[p.id].push(result);
+    }
     await storageSet('scales_'+p.id, scaleData[p.id]);
     closeModal();
     renderSidebar();
     renderScalesTab(p);
-    toast('Đã lưu kết quả '+scale.name);
+    toast(existingEntry ? 'Đã lưu thay đổi '+scale.name : 'Đã lưu kết quả '+scale.name);
   });
 }
 
 let pendingYbocs = {A:{}, B:{}, C:{}, D:{}};
 
-function openYbocs2Modal(p, scale){
+function openYbocs2Modal(p, scale, existingEntry){
   pendingScaleKey = 'ybocs2';
-  pendingYbocs = {A:{}, B:{}, C:{}, D:{}};
+  if(existingEntry){
+    const A={}, C={};
+    scale.partA.forEach((t,idx)=>{ A[idx] = existingEntry.checkedObsessions.includes(idx) ? 1 : 0; });
+    scale.partC.forEach((t,idx)=>{ C[idx] = existingEntry.checkedCompulsions.includes(idx) ? 1 : 0; });
+    pendingYbocs = {A, B:{...(existingEntry.answersB||{})}, C, D:{...(existingEntry.answersD||{})}};
+  } else {
+    pendingYbocs = {A:{}, B:{}, C:{}, D:{}};
+  }
 
   const checklistBlock = (items, part, instructions, title)=>`
     <h3 style="font-family:var(--serif);font-size:15px;color:var(--teal-dark);margin:18px 0 6px;">${title}</h3>
     <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;">${instructions}</div>
-    ${items.map((t,idx)=>`
-      <div class="yb-check-row">
+    ${items.map((t,idx)=>{
+      const cur = pendingYbocs[part][idx];
+      return `<div class="yb-check-row">
         <div class="yb-check-text">${t}</div>
         <div class="yb-check-opts">
-          <div class="yb-opt" data-part="${part}" data-idx="${idx}" data-v="0">Không / No</div>
-          <div class="yb-opt" data-part="${part}" data-idx="${idx}" data-v="1">Có / Yes</div>
+          <div class="yb-opt${cur===0?' picked':''}" data-part="${part}" data-idx="${idx}" data-v="0">Không / No</div>
+          <div class="yb-opt${cur===1?' picked':''}" data-part="${part}" data-idx="${idx}" data-v="1">Có / Yes</div>
         </div>
-      </div>`).join('')}
+      </div>`;
+    }).join('')}
   `;
 
   const severityBlock = (dims, part, instructions, title)=>`
     <h3 style="font-family:var(--serif);font-size:15px;color:var(--teal-dark);margin:18px 0 6px;">${title}</h3>
     <div style="font-size:12px;color:var(--ink-soft);margin-bottom:10px;">${instructions}</div>
-    ${dims.map((d,idx)=>`
-      <div class="sq">
+    ${dims.map((d,idx)=>{
+      const cur = pendingYbocs[part][idx];
+      return `<div class="sq">
         <div class="sq-text">${d.q}</div>
         <div class="sq-options" data-part="${part}" data-idx="${idx}">
-          ${d.opts.map(o=>`<div class="sq-opt yb-sev-opt" data-part="${part}" data-idx="${idx}" data-v="${o.v}">${o.v} — ${o.l}</div>`).join('')}
+          ${d.opts.map(o=>`<div class="sq-opt yb-sev-opt${o.v===cur?' picked':''}" data-part="${part}" data-idx="${idx}" data-v="${o.v}">${o.v} — ${o.l}</div>`).join('')}
         </div>
-      </div>`).join('')}
+      </div>`;
+    }).join('')}
   `;
 
   const body = `
-    <h2>${scale.name}</h2>
+    <h2>${existingEntry ? 'Sửa — ' : ''}${scale.name}</h2>
     <div class="modal-sub">${scale.full} — ${esc(p.name)}</div>
-    <div class="form-row"><label>Ngày đánh giá</label><input type="date" id="scale-date" value="${new Date().toISOString().slice(0,10)}"></div>
+    <div class="form-row"><label>Ngày đánh giá</label><input type="date" id="scale-date" value="${existingEntry ? existingEntry.date : new Date().toISOString().slice(0,10)}"></div>
     ${checklistBlock(scale.partA, 'A', scale.partAInstructions, 'Phần A — Các ám ảnh (Obsessions) · 30 ngày qua')}
     ${severityBlock(scale.partB, 'B', scale.partBInstructions, 'Phần B — Mức độ ám ảnh')}
     ${checklistBlock(scale.partC, 'C', scale.partCInstructions, 'Phần C — Các hành vi cưỡng chế (Compulsions) · 30 ngày qua')}
@@ -1450,10 +1478,11 @@ function openYbocs2Modal(p, scale){
     </div>
     <div class="modal-actions">
       <button class="btn" id="modal-cancel">Hủy</button>
-      <button class="btn btn-primary" id="modal-save">Lưu kết quả</button>
+      <button class="btn btn-primary" id="modal-save">${existingEntry ? 'Lưu thay đổi' : 'Lưu kết quả'}</button>
     </div>
   `;
   openModal(body, true);
+  if(existingEntry) updateYbocsPreview(scale);
 
   document.querySelectorAll('.yb-opt').forEach(el=>{
     el.addEventListener('click', ()=>{
@@ -1482,12 +1511,18 @@ function openYbocs2Modal(p, scale){
     const date = document.getElementById('scale-date').value;
     const result = computeYbocsResult(scale, pendingYbocs, date);
     scaleData[p.id] = scaleData[p.id]||[];
-    scaleData[p.id].push(result);
+    if(existingEntry){
+      result.id = existingEntry.id;
+      const i = scaleData[p.id].findIndex(x=>x.id===existingEntry.id);
+      if(i>-1) scaleData[p.id][i] = result; else scaleData[p.id].push(result);
+    } else {
+      scaleData[p.id].push(result);
+    }
     await storageSet('scales_'+p.id, scaleData[p.id]);
     closeModal();
     renderSidebar();
     renderScalesTab(p);
-    toast('Đã lưu kết quả '+scale.name);
+    toast(existingEntry ? 'Đã lưu thay đổi '+scale.name : 'Đã lưu kết quả '+scale.name);
   });
 }
 
@@ -1498,10 +1533,15 @@ function openScaleResultModal(p, entry){
     : entry.scaleKey==='caars' ? buildCaarsResultBody(p, scale, entry)
     : buildScaleResultBody(p, scale, entry);
   openModal(body, true);
+  const editBtn = document.getElementById('modal-edit');
+  if(editBtn) editBtn.addEventListener('click', ()=>{
+    closeModal();
+    openScaleModal(p, entry.scaleKey, entry);
+  });
 }
 
 function buildScaleResultBody(p, scale, entry){
-  const scoreLine = scale.subscale ? dassScoreHtml(entry) : `${entry.total} — ${entry.level.label}`;
+  const scoreLine = scale.subscale ? dassScoreHtml(entry) : `${entry.total} — ${bi(entry.level.label)}`;
   return `
     <h2>${scale.name}</h2>
     <div class="modal-sub">${scale.full} — ${esc(p.name)} · Ngày: ${esc(entry.date)}</div>
@@ -1523,6 +1563,7 @@ function buildScaleResultBody(p, scale, entry){
     </div>
     <div class="modal-actions">
       <button class="btn" id="modal-cancel">Đóng</button>
+      <button class="btn btn-primary" id="modal-edit">Sửa</button>
     </div>
   `;
 }
@@ -1562,10 +1603,11 @@ function buildYbocsResultBody(p, scale, entry){
     ${severityBlock(scale.partD, entry.answersD||{}, 'Phần D — Mức độ cưỡng chế')}
     <div class="score-preview">
       <div style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;">Kết quả (Phần B + Phần D)</div>
-      <div class="big" id="score-preview-val">Ám ảnh: ${entry.subScores.obsessions}/25 &nbsp; Cưỡng chế: ${entry.subScores.compulsions}/25 &nbsp; — Tổng: ${entry.total}/50 (${entry.level.label})</div>
+      <div class="big" id="score-preview-val"><strong>Ám ảnh</strong>: ${entry.subScores.obsessions}/25 &nbsp; <strong>Cưỡng chế</strong>: ${entry.subScores.compulsions}/25 &nbsp; — <strong>Tổng</strong>: ${entry.total}/50 (${bi(entry.level.label)})</div>
     </div>
     <div class="modal-actions">
       <button class="btn" id="modal-cancel">Đóng</button>
+      <button class="btn btn-primary" id="modal-edit">Sửa</button>
     </div>
   `;
 }
@@ -1592,13 +1634,14 @@ function buildCaarsResultBody(p, scale, entry){
         ${['A','B','C','D','E'].map(k=>{
           const t = entry.tscores ? entry.tscores[k] : null;
           const interp = (t!==null && t!==undefined) ? tscoreInterpret(t) : null;
-          return `<div><strong>${scale.subscales[k].label}</strong>: Raw ${entry.rawScores[k]}/${scale.subscales[k].max}${interp ? ` — T=${t} (${interp})` : ' — <span style="color:var(--ink-soft);">chưa nhập T-score</span>'}</div>`;
+          return `<div><strong>${scale.subscales[k].label}</strong>: Raw ${entry.rawScores[k]}/${scale.subscales[k].max}${interp ? ` — T=${t} (${bi(interp)})` : ' — <span style="color:var(--ink-soft);"><strong>Chưa nhập T-score</strong> / T-score not entered</span>'}</div>`;
         }).join('')}
-        <div style="margin-top:6px;">Inconsistency Index: <strong>${entry.inconsistency}</strong> ${entry.inconsistency>=8 ? '<span style="color:var(--red);">(≥ 8 — cần thận trọng khi diễn giải)</span>' : '(&lt; 8)'}</div>
+        <div style="margin-top:6px;"><strong>Chỉ số không nhất quán</strong> / Inconsistency Index: <strong>${entry.inconsistency}</strong> ${entry.inconsistency>=8 ? '<span style="color:var(--red);">(≥ 8 — cần thận trọng khi diễn giải / needs cautious interpretation)</span>' : '(&lt; 8)'}</div>
       </div>
     </div>
     <div class="modal-actions">
       <button class="btn" id="modal-cancel">Đóng</button>
+      <button class="btn btn-primary" id="modal-edit">Sửa</button>
     </div>
   `;
 }
@@ -1612,7 +1655,7 @@ function updateYbocsPreview(scale){
     return;
   }
   const result = computeYbocsResult(scale, pendingYbocs, document.getElementById('scale-date').value);
-  el.innerHTML = `Ám ảnh: ${result.subScores.obsessions}/25 &nbsp; Cưỡng chế: ${result.subScores.compulsions}/25 &nbsp; — Tổng: ${result.total}/50 (${result.level.label})`;
+  el.innerHTML = `<strong>Ám ảnh</strong>: ${result.subScores.obsessions}/25 &nbsp; <strong>Cưỡng chế</strong>: ${result.subScores.compulsions}/25 &nbsp; — <strong>Tổng</strong>: ${result.total}/50 (${bi(result.level.label)})`;
 }
 
 function computeYbocsResult(scale, pending, date){
@@ -1648,7 +1691,7 @@ function updateScorePreview(scale){
   if(scale.subscale){
     document.getElementById('score-preview-val').innerHTML = dassScoreHtml(result);
   } else {
-    document.getElementById('score-preview-val').textContent = `${result.total} — ${result.level.label}`;
+    document.getElementById('score-preview-val').innerHTML = `${result.total} — ${bi(result.level.label)}`;
   }
 }
 
@@ -1890,6 +1933,12 @@ function closeModal(){
    UTIL
 ========================================================= */
 function esc(s){ return (s||'').replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function bi(s){
+  if(s==null) return '';
+  const i = String(s).indexOf(' / ');
+  if(i===-1) return esc(s);
+  return `<strong>${esc(s.slice(0,i))}</strong> / ${esc(s.slice(i+3))}`;
+}
 function escAttr(s){ return esc(s); }
 
 
