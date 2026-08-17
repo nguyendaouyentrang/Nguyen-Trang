@@ -726,8 +726,17 @@ const SCALES = {
     levels:[[13,'Dưới ngưỡng lâm sàng / Subclinical (tham khảo)',0],[25,'Nhẹ / Mild',1],[34,'Trung bình / Moderate',2],[40,'Nặng / Severe',3],[50,'Rất nặng / Extreme',4]]
   },
   caars:{
-    key:'caars', name:'CAARS-S', full:'Conners\' Adult ADHD Rating Scale — Self-Report — Thang đánh giá ADHD ở người lớn của Conners (tự báo cáo)',
+    key:'caars', name:'CAARS-S:S', full:'Conners\' Adult ADHD Rating Scale — Self-Report: Short Version (CAARS-S:S) — Thang đánh giá ADHD ở người lớn của Conners, bản ngắn tự báo cáo (26 câu)',
+    type:'caars',
     instructions:'Dưới đây là những câu hỏi liên quan đến các hành vi hoặc vấn đề mà người trưởng thành đôi khi gặp phải. Hãy đọc kỹ từng câu và xác định mức độ hoặc tần suất mà câu đó mô tả tình trạng của bạn trong thời gian gần đây. / Listed below are items concerning behaviors or problems sometimes experienced by adults. Read each item carefully and decide how much or how frequently each item describes you recently.',
+    subscales:{
+      A:{label:'Inattention/Memory Problems — Vấn đề chú ý/trí nhớ', items:[2,4,16,17,20], max:15},
+      B:{label:'Hyperactivity/Restlessness — Tăng động/bồn chồn', items:[3,5,9,10,22], max:15},
+      C:{label:'Impulsivity/Emotional Lability — Bốc đồng/cảm xúc không ổn định', items:[0,6,7,12,19], max:15},
+      D:{label:'Problems with Self-Concept — Vấn đề về khái niệm bản thân', items:[8,14,15,24,25], max:15},
+      E:{label:'ADHD Index — Chỉ số ADHD', items:[1,6,7,8,10,11,13,16,18,21,23,25], max:36}
+    },
+    inconsistencyPairs:[[2,20],[16,17],[5,9],[3,10],[12,19],[6,7],[14,15],[8,25]],
     items:[
       {t:'1. Tôi ngắt lời người khác khi họ đang nói. / I interrupt others when talking.', opts:OPT_CAARS},
       {t:'2. Tôi luôn hoạt động không ngừng, như thể được một động cơ thúc đẩy. / I am always on the go, as if driven by a motor.', opts:OPT_CAARS},
@@ -755,8 +764,7 @@ const SCALES = {
       {t:'24. Tôi khó duy trì sự tập trung vào một việc trừ khi việc đó thực sự thú vị. / I can’t keep my mind on something unless it’s really interesting.', opts:OPT_CAARS},
       {t:'25. Tôi ước mình tự tin hơn vào khả năng của bản thân. / I wish I had greater confidence in my abilities.', opts:OPT_CAARS},
       {t:'26. Những thất bại trong quá khứ khiến tôi khó tin tưởng vào bản thân mình. / My past failures make it hard for me to believe in myself.', opts:OPT_CAARS}
-    ],
-    levels:[[78,'Tổng điểm thô — chưa phân mức độ lâm sàng, cần đối chiếu tài liệu CAARS gốc / Raw total — no severity cutoffs applied, refer to official CAARS manual',0]]
+    ]
   }
 };
 
@@ -1107,6 +1115,21 @@ function renderScoreTable(history){
             <td><span class="level-pill lv-${h.level.lvl}">${h.level.label}</span></td>
           </tr>`;
         }
+        if(h.scaleKey==='caars'){
+          const hasT = h.tscores && Object.values(h.tscores).some(v=>v!=null);
+          return `<tr class="score-row" data-id="${h.id}">
+            <td>${esc(h.date)}</td>
+            <td>CAARS-S:S</td>
+            <td>
+              A:${h.rawScores.A} · B:${h.rawScores.B} · C:${h.rawScores.C} · D:${h.rawScores.D} · E:${h.rawScores.E}<br>
+              Inconsistency: ${h.inconsistency}${h.inconsistency>=8?' ⚠':''}
+            </td>
+            <td>
+              ${h.normLabel ? esc(h.normLabel) : 'Không rõ nhóm chuẩn'}<br>
+              <span style="font-size:11px;color:var(--ink-soft);">${hasT ? 'Đã nhập T-score' : 'Chưa nhập T-score'}</span>
+            </td>
+          </tr>`;
+        }
         return `<tr class="score-row" data-id="${h.id}">
           <td>${esc(h.date)}</td>
           <td>${SCALES[h.scaleKey].name}</td>
@@ -1139,6 +1162,14 @@ function renderTrendCards(pid, history){
         <div class="trend-wrap">${sparkline(arr.map(a=>a.subScores.obsessions), '#b5473f', 'Ám ảnh (Obsessions)')}</div>
         <div class="trend-wrap">${sparkline(arr.map(a=>a.subScores.compulsions), '#c98a2c', 'Cưỡng chế (Compulsions)')}</div>
         <div class="trend-wrap">${sparkline(arr.map(a=>a.total), '#1f6f73', 'Tổng điểm')}</div>
+      </div>`;
+    } else if(key==='caars'){
+      html += `<div class="card"><h3>Xu hướng — CAARS-S:S (điểm thô)</h3>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.A), '#b5473f', 'A — Inattention/Memory')}</div>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.B), '#c98a2c', 'B — Hyperactivity/Restlessness')}</div>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.C), '#a15b1f', 'C — Impulsivity/Emotional Lability')}</div>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.D), '#4a7c59', 'D — Problems with Self-Concept')}</div>
+        <div class="trend-wrap">${sparkline(arr.map(a=>a.rawScores.E), '#1f6f73', 'E — ADHD Index')}</div>
       </div>`;
     } else {
       html += `<div class="card"><h3>Xu hướng — ${SCALES[key].name}</h3>
@@ -1227,6 +1258,7 @@ function dassTrendChart(arr, subKey, label, abbr, thresholds, color){
 function openScaleModal(p, scaleKey){
   const scale = SCALES[scaleKey];
   if(scale.type==='ybocs2'){ openYbocs2Modal(p, scale); return; }
+  if(scale.type==='caars'){ openCaarsModal(p, scale); return; }
   pendingScaleKey = scaleKey;
   pendingScaleAnswers = {};
 
@@ -1273,6 +1305,91 @@ function openScaleModal(p, scaleKey){
     }
     const date = document.getElementById('scale-date').value;
     const result = computeScaleResult(scale, pendingScaleAnswers, date);
+    scaleData[p.id] = scaleData[p.id]||[];
+    scaleData[p.id].push(result);
+    await storageSet('scales_'+p.id, scaleData[p.id]);
+    closeModal();
+    renderSidebar();
+    renderScalesTab(p);
+    toast('Đã lưu kết quả '+scale.name);
+  });
+}
+
+function openCaarsModal(p, scale){
+  pendingScaleKey = 'caars';
+  pendingScaleAnswers = {};
+  const today = new Date().toISOString().slice(0,10);
+  const age = ageAt(p.birth, today);
+  const norm = caarsNormGroup(p.gender, age);
+
+  const body = `
+    <h2>${scale.name}</h2>
+    <div class="modal-sub">${scale.full} — ${esc(p.name)}</div>
+    <div class="form-row"><label>Ngày đánh giá</label><input type="date" id="scale-date" value="${today}"></div>
+    <div style="font-size:12.5px;color:var(--ink-soft);margin-bottom:6px;">${scale.instructions}</div>
+    <div id="caars-norm-note" style="font-size:12px;color:var(--ink-soft);background:var(--paper);border-radius:8px;padding:8px 12px;margin-bottom:14px;">${esc(norm.label)}</div>
+    <div id="scale-items">
+      ${scale.items.map((it,idx)=>`
+        <div class="sq">
+          <div class="sq-text">${it.t}</div>
+          <div class="sq-options" data-idx="${idx}">
+            ${it.opts.map(o=>`<div class="sq-opt" data-idx="${idx}" data-v="${o.v}">${o.v} — ${o.l}</div>`).join('')}
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="score-preview">
+      <div style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;">Điểm thô (Raw score)</div>
+      <div class="big" id="caars-raw-preview" style="font-size:14px;line-height:1.8;">—</div>
+    </div>
+    <div class="card" style="margin-top:16px;">
+      <h3>Nhập T-score (tra theo manual CAARS-S:S${norm.group ? ', nhóm '+norm.group : ''})</h3>
+      <div style="font-size:11.5px;color:var(--ink-soft);margin-bottom:12px;">T-score không được tự tính (cần bảng chuẩn hóa bản quyền theo tuổi/giới từ manual gốc) — nhập thủ công sau khi tra cứu, hệ thống sẽ tự diễn giải mức độ.</div>
+      <div class="form-2col">
+        ${['A','B','C','D','E'].map(k=>`
+          <div class="form-row">
+            <label>${scale.subscales[k].label}</label>
+            <input type="number" min="0" max="100" id="caars-t-${k}" placeholder="Nhập T-score">
+            <div id="caars-t-${k}-interp" style="font-size:11.5px;color:var(--teal-dark);margin-top:4px;font-weight:600;min-height:14px;"></div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">Hủy</button>
+      <button class="btn btn-primary" id="modal-save">Lưu kết quả</button>
+    </div>
+  `;
+  openModal(body, true);
+
+  document.querySelectorAll('#scale-items .sq-opt').forEach(el=>{
+    el.addEventListener('click', ()=>{
+      const idx = el.dataset.idx;
+      pendingScaleAnswers[idx] = Number(el.dataset.v);
+      document.querySelectorAll(`.sq-opt[data-idx="${idx}"]`).forEach(o=>o.classList.remove('picked'));
+      el.classList.add('picked');
+      updateCaarsRawPreview(scale);
+    });
+  });
+
+  ['A','B','C','D','E'].forEach(k=>{
+    document.getElementById('caars-t-'+k).addEventListener('input', (e)=>{
+      const v = e.target.value;
+      const interp = tscoreInterpret(v);
+      document.getElementById('caars-t-'+k+'-interp').textContent = interp ? `T=${v} — ${interp}` : '';
+    });
+  });
+
+  document.getElementById('modal-save').addEventListener('click', async ()=>{
+    if(Object.keys(pendingScaleAnswers).length < scale.items.length){
+      toast('Vui lòng trả lời tất cả các mục');
+      return;
+    }
+    const date = document.getElementById('scale-date').value;
+    const result = computeCaarsResult(scale, pendingScaleAnswers, date, p);
+    ['A','B','C','D','E'].forEach(k=>{
+      const v = document.getElementById('caars-t-'+k).value;
+      result.tscores[k] = v==='' ? null : Number(v);
+    });
     scaleData[p.id] = scaleData[p.id]||[];
     scaleData[p.id].push(result);
     await storageSet('scales_'+p.id, scaleData[p.id]);
@@ -1372,7 +1489,9 @@ function openYbocs2Modal(p, scale){
 /* ---------- Xem chi tiết kết quả đã lưu ---------- */
 function openScaleResultModal(p, entry){
   const scale = SCALES[entry.scaleKey];
-  const body = entry.scaleKey==='ybocs2' ? buildYbocsResultBody(p, scale, entry) : buildScaleResultBody(p, scale, entry);
+  const body = entry.scaleKey==='ybocs2' ? buildYbocsResultBody(p, scale, entry)
+    : entry.scaleKey==='caars' ? buildCaarsResultBody(p, scale, entry)
+    : buildScaleResultBody(p, scale, entry);
   openModal(body, true);
 }
 
@@ -1439,6 +1558,39 @@ function buildYbocsResultBody(p, scale, entry){
     <div class="score-preview">
       <div style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;">Kết quả (Phần B + Phần D)</div>
       <div class="big" id="score-preview-val">Ám ảnh: ${entry.subScores.obsessions}/25 &nbsp; Cưỡng chế: ${entry.subScores.compulsions}/25 &nbsp; — Tổng: ${entry.total}/50 (${entry.level.label})</div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" id="modal-cancel">Đóng</button>
+    </div>
+  `;
+}
+
+function buildCaarsResultBody(p, scale, entry){
+  return `
+    <h2>${scale.name}</h2>
+    <div class="modal-sub">${scale.full} — ${esc(p.name)} · Ngày: ${esc(entry.date)}</div>
+    <div style="font-size:12px;color:var(--ink-soft);background:var(--paper);border-radius:8px;padding:8px 12px;margin-bottom:14px;">${entry.normLabel ? esc(entry.normLabel) : 'Không rõ nhóm chuẩn'}</div>
+    <div id="scale-items">
+      ${scale.items.map((it,idx)=>{
+        const val = entry.answers[idx];
+        return `<div class="sq">
+          <div class="sq-text">${it.t}</div>
+          <div class="sq-options">
+            ${it.opts.map(o=>`<div class="sq-opt sq-opt-ro${o.v===val?' picked':''}">${o.v} — ${o.l}</div>`).join('')}
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div class="score-preview">
+      <div style="font-size:11px;color:var(--ink-soft);text-transform:uppercase;">Điểm thô &amp; T-score</div>
+      <div style="font-size:13.5px;color:var(--ink);line-height:2;margin-top:6px;">
+        ${['A','B','C','D','E'].map(k=>{
+          const t = entry.tscores ? entry.tscores[k] : null;
+          const interp = (t!==null && t!==undefined) ? tscoreInterpret(t) : null;
+          return `<div><strong>${scale.subscales[k].label}</strong>: Raw ${entry.rawScores[k]}/${scale.subscales[k].max}${interp ? ` — T=${t} (${interp})` : ' — <span style="color:var(--ink-soft);">chưa nhập T-score</span>'}</div>`;
+        }).join('')}
+        <div style="margin-top:6px;">Inconsistency Index: <strong>${entry.inconsistency}</strong> ${entry.inconsistency>=8 ? '<span style="color:var(--red);">(≥ 8 — cần thận trọng khi diễn giải)</span>' : '(&lt; 8)'}</div>
+      </div>
     </div>
     <div class="modal-actions">
       <button class="btn" id="modal-cancel">Đóng</button>
@@ -1521,6 +1673,81 @@ function computeScaleResult(scale, answers, date){
   const total = Object.values(answers).reduce((a,b)=>a+b,0);
   const level = levelFor(scale.levels, total);
   return {scaleKey:scale.key, date, answers:{...answers}, total, level, riskFlag, id:Date.now()};
+}
+
+/* ---------- CAARS-S:S — điểm thô, Inconsistency Index, nhóm chuẩn, diễn giải T-score ---------- */
+function ageAt(birthStr, dateStr){
+  if(!birthStr) return null;
+  const b = new Date(birthStr), d = new Date(dateStr||new Date());
+  if(isNaN(b.getTime())) return null;
+  let age = d.getFullYear() - b.getFullYear();
+  const m = d.getMonth() - b.getMonth();
+  if(m < 0 || (m===0 && d.getDate() < b.getDate())) age--;
+  return age;
+}
+
+function caarsNormGroup(gender, age){
+  if(age==null) return {label:'Không rõ tuổi bệnh nhân (chưa có ngày sinh trong hồ sơ) — cần biết tuổi để xác định nhóm chuẩn khi tra T-score.', group:null};
+  if(age<18) return {label:`${age} tuổi — dưới 18, ngoài phạm vi chuẩn hóa người lớn của CAARS-S:S.`, group:null};
+  let bin, bandLabel;
+  if(age<=29){ bin=1; bandLabel='18–29'; }
+  else if(age<=39){ bin=2; bandLabel='30–39'; }
+  else if(age<=49){ bin=3; bandLabel='40–49'; }
+  else { bin=4; bandLabel='≥50'; }
+  const sexLetter = gender==='Nam' ? 'M' : (gender==='Nữ' ? 'F' : null);
+  if(!sexLetter) return {label:`${age} tuổi (nhóm tuổi ${bandLabel}) — chưa rõ giới tính trong hồ sơ, cần chọn cột M hoặc F phù hợp khi tra T-score.`, group:null, bandLabel};
+  const group = sexLetter+bin;
+  return {label:`${gender}, ${age} tuổi → nhóm chuẩn ${group} (${bandLabel}) — dùng nhóm này khi tra bảng T-score trong manual CAARS-S:S.`, group, bandLabel};
+}
+
+function tscoreInterpret(t){
+  if(t===null || t===undefined || t==='' || isNaN(t)) return null;
+  t = Number(t);
+  if(t>70) return 'Rất cao / Very much above average';
+  if(t>=66) return 'Cao / Much above average';
+  if(t>=61) return 'Trên trung bình / Above average';
+  if(t>=56) return 'Hơi trên trung bình / Slightly above average';
+  if(t>=45) return 'Trung bình / Average';
+  if(t>=40) return 'Hơi dưới trung bình / Slightly below average';
+  if(t>=35) return 'Dưới trung bình / Below average';
+  if(t>=30) return 'Thấp / Much below average';
+  return 'Rất thấp / Very much below average';
+}
+
+function caarsRawScores(scale, answers){
+  const sum = idxArr => idxArr.reduce((s,i)=> s+(answers[i]||0), 0);
+  const scores = {};
+  ['A','B','C','D','E'].forEach(k=>{ scores[k] = sum(scale.subscales[k].items); });
+  scores.inconsistency = scale.inconsistencyPairs.reduce((s,[i,j])=> s+Math.abs((answers[i]||0)-(answers[j]||0)), 0);
+  return scores;
+}
+
+function computeCaarsResult(scale, answers, date, p){
+  const scores = caarsRawScores(scale, answers);
+  const age = ageAt(p.birth, date);
+  const norm = caarsNormGroup(p.gender, age);
+  return {
+    scaleKey:'caars', date, answers:{...answers},
+    rawScores:{A:scores.A, B:scores.B, C:scores.C, D:scores.D, E:scores.E},
+    inconsistency:scores.inconsistency,
+    ageAtAssessment:age, normGroup:norm.group, normLabel:norm.label,
+    tscores:{A:null,B:null,C:null,D:null,E:null},
+    riskFlag:false, id:Date.now()
+  };
+}
+
+function updateCaarsRawPreview(scale){
+  const answered = Object.keys(pendingScaleAnswers).length;
+  const el = document.getElementById('caars-raw-preview');
+  if(!el) return;
+  if(answered < scale.items.length){
+    el.textContent = `Đã trả lời ${answered}/${scale.items.length}`;
+    return;
+  }
+  const scores = caarsRawScores(scale, pendingScaleAnswers);
+  el.innerHTML = ['A','B','C','D','E'].map(k=>
+    `<div>${scale.subscales[k].label}: <strong>${scores[k]}</strong> / ${scale.subscales[k].max}</div>`
+  ).join('') + `<div style="margin-top:6px;">Inconsistency Index: <strong>${scores.inconsistency}</strong> ${scores.inconsistency>=8 ? '<span style="color:var(--red);">(≥ 8 — cần thận trọng khi diễn giải)</span>' : '(&lt; 8)'}</div>`;
 }
 
 /* =========================================================
