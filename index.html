@@ -1022,6 +1022,20 @@ function renderScalesTab(p){
   }));
 }
 
+function dassScoreHtml(result){
+  const row = (label, abbr, score, lvl)=>`
+    <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="font-family:var(--sans);font-size:12.5px;font-weight:700;color:var(--ink);min-width:150px;">${label} <span style="color:var(--ink-soft);font-weight:500;">(${abbr})</span></div>
+      <div style="font-family:var(--serif);font-size:20px;font-weight:700;color:var(--teal-dark);">${score}</div>
+      <span class="level-pill lv-${lvl.lvl}">${lvl.label}</span>
+    </div>`;
+  return `<div style="display:flex;flex-direction:column;gap:8px;">
+    ${row('Trầm cảm','Depression', result.subScores.depression, result.subLevels.depression)}
+    ${row('Lo âu','Anxiety', result.subScores.anxiety, result.subLevels.anxiety)}
+    ${row('Stress','Căng thẳng', result.subScores.stress, result.subLevels.stress)}
+  </div>`;
+}
+
 function renderScoreTable(history){
   return `<table class="score-table">
     <thead><tr><th>Ngày</th><th>Thang đo</th><th>Điểm</th><th>Mức độ</th></tr></thead>
@@ -1031,7 +1045,11 @@ function renderScoreTable(history){
           return `<tr class="score-row" data-id="${h.id}">
             <td>${esc(h.date)}</td>
             <td>DASS-21</td>
-            <td>D:${h.subScores.depression} · A:${h.subScores.anxiety} · S:${h.subScores.stress}</td>
+            <td>
+              Trầm cảm (D): ${h.subScores.depression}<br>
+              Lo âu (A): ${h.subScores.anxiety}<br>
+              Stress (S): ${h.subScores.stress}
+            </td>
             <td>
               <span class="level-pill lv-${h.subLevels.depression.lvl}">Trầm cảm: ${h.subLevels.depression.label}</span><br>
               <span class="level-pill lv-${h.subLevels.anxiety.lvl}" style="margin-top:4px;display:inline-block;">Lo âu: ${h.subLevels.anxiety.label}</span><br>
@@ -1070,9 +1088,9 @@ function renderTrendCards(pid, history){
     if(arr.length<2) return;
     if(key==='dass21'){
       html += `<div class="card"><h3>Xu hướng — DASS-21</h3>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.subScores.depression), '#b5473f', 'Trầm cảm')}</div>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.subScores.anxiety), '#c98a2c', 'Lo âu')}</div>
-        <div class="trend-wrap">${sparkline(arr.map(a=>a.subScores.stress), '#1f6f73', 'Stress')}</div>
+        ${dassTrendChart(arr, 'depression', 'Trầm cảm', 'Depression', SCALES.dass21.subLevels.depression, '#b5473f')}
+        ${dassTrendChart(arr, 'anxiety', 'Lo âu', 'Anxiety', SCALES.dass21.subLevels.anxiety, '#c98a2c')}
+        ${dassTrendChart(arr, 'stress', 'Stress', 'Căng thẳng', SCALES.dass21.subLevels.stress, '#1f6f73')}
       </div>`;
     } else if(key==='ybocs2'){
       html += `<div class="card"><h3>Xu hướng — Y-BOCS-II</h3>
@@ -1109,6 +1127,58 @@ function sparkline(values, color, label){
     <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2"/>
     ${dots}
   </svg>`;
+}
+
+function formatShortDate(d){
+  const parts = (d||'').split('-');
+  return parts.length===3 ? `${parts[2]}/${parts[1]}` : (d||'');
+}
+
+const DASS_ZONE_COLORS = ['#dcebde','#f6e8c9','#f8d9b8','#f3cac4','#e3b3ac'];
+const DASS_ZONE_LABELS = ['Bình thường','Nhẹ','Trung bình','Nặng','Rất nặng'];
+
+function dassTrendChart(arr, subKey, label, abbr, thresholds, color){
+  const values = arr.map(a=>a.subScores[subKey]);
+  const dates = arr.map(a=>a.date);
+  const w=620, h=136, padL=6, padR=6, padT=10, padB=30;
+  const innerH = h-padT-padB, innerW = w-padL-padR;
+  const bandEdges = thresholds.map(t=>t[0]);
+  const realMax = bandEdges[bandEdges.length-2];
+  const visualMax = Math.max(...values, realMax) * 1.12;
+  const y = v => padT + innerH * (1 - Math.min(v, visualMax)/visualMax);
+
+  let lower = 0, bandsSvg = '';
+  thresholds.forEach((t,i)=>{
+    const upper = Math.min(t[0], visualMax);
+    const yTop = y(upper), yBottom = y(lower);
+    bandsSvg += `<rect x="${padL}" y="${yTop}" width="${innerW}" height="${Math.max(yBottom-yTop,0)}" fill="${DASS_ZONE_COLORS[i]}"/>`;
+    lower = t[0];
+  });
+
+  const stepX = values.length>1 ? innerW/(values.length-1) : 0;
+  const pts = values.map((v,i)=>`${padL+i*stepX},${y(v)}`).join(' ');
+  const dots = values.map((v,i)=>`<circle cx="${padL+i*stepX}" cy="${y(v)}" r="3.6" fill="${color}" stroke="#fff" stroke-width="1.4"/>`).join('');
+  const anchorFor = (i)=> i===0 ? 'start' : (i===values.length-1 ? 'end' : 'middle');
+  const valLabels = values.map((v,i)=>`<text x="${padL+i*stepX}" y="${y(v)-8}" font-size="10" font-weight="700" fill="${color}" text-anchor="${anchorFor(i)}">${v}</text>`).join('');
+  const dateLabels = dates.map((d,i)=>`<text x="${padL+i*stepX}" y="${h-8}" font-size="9.5" fill="var(--ink-soft)" text-anchor="${anchorFor(i)}">${formatShortDate(d)}</text>`).join('');
+  const lastLevel = levelFor(thresholds, values[values.length-1]);
+
+  return `<div style="margin-bottom:18px;">
+    <div style="font-size:12px;color:var(--ink);font-weight:700;margin-bottom:4px;">
+      ${label} <span style="color:var(--ink-soft);font-weight:500;">(${abbr})</span> — mới nhất: ${values[values.length-1]}
+      <span class="level-pill lv-${lastLevel.lvl}" style="margin-left:6px;">${lastLevel.label}</span>
+    </div>
+    <svg viewBox="0 0 ${w} ${h}" style="width:100%;height:120px;display:block;" preserveAspectRatio="none">
+      ${bandsSvg}
+      <polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2.4"/>
+      ${dots}
+      ${valLabels}
+      ${dateLabels}
+    </svg>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:4px;">
+      ${DASS_ZONE_LABELS.map((zl,i)=>`<span style="font-size:10px;color:var(--ink-soft);display:inline-flex;align-items:center;gap:4px;"><span style="width:9px;height:9px;border-radius:2px;background:${DASS_ZONE_COLORS[i]};display:inline-block;border:1px solid rgba(0,0,0,0.12);"></span>${zl}</span>`).join('')}
+    </div>
+  </div>`;
 }
 
 /* ---------- Scale-taking modal ---------- */
@@ -1265,9 +1335,7 @@ function openScaleResultModal(p, entry){
 }
 
 function buildScaleResultBody(p, scale, entry){
-  const scoreLine = scale.subscale
-    ? `D:${entry.subScores.depression} (${entry.subLevels.depression.label}) &nbsp; A:${entry.subScores.anxiety} (${entry.subLevels.anxiety.label}) &nbsp; S:${entry.subScores.stress} (${entry.subLevels.stress.label})`
-    : `${entry.total} — ${entry.level.label}`;
+  const scoreLine = scale.subscale ? dassScoreHtml(entry) : `${entry.total} — ${entry.level.label}`;
   return `
     <h2>${scale.name}</h2>
     <div class="modal-sub">${scale.full} — ${esc(p.name)} · Ngày: ${esc(entry.date)}</div>
@@ -1379,8 +1447,7 @@ function updateScorePreview(scale){
   const date = document.getElementById('scale-date').value;
   const result = computeScaleResult(scale, pendingScaleAnswers, date);
   if(scale.subscale){
-    document.getElementById('score-preview-val').innerHTML =
-      `D:${result.subScores.depression} (${result.subLevels.depression.label}) &nbsp; A:${result.subScores.anxiety} (${result.subLevels.anxiety.label}) &nbsp; S:${result.subScores.stress} (${result.subLevels.stress.label})`;
+    document.getElementById('score-preview-val').innerHTML = dassScoreHtml(result);
   } else {
     document.getElementById('score-preview-val').textContent = `${result.total} — ${result.level.label}`;
   }
